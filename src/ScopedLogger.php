@@ -2,6 +2,4 @@
 
 namespace TibbsA\ScopedLogger;
 
-class ScopedLogger {
-
-}
+class ScopedLogger {}
