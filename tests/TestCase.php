@@ -2,7 +2,6 @@
 
 namespace TibbsA\ScopedLogger\Tests;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
 use TibbsA\ScopedLogger\ScopedLoggerServiceProvider;
 
