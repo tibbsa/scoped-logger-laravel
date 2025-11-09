@@ -30,6 +30,12 @@ Scopes can be explicitly defined when logging, or automatically determined based
 - 🪝 **Laravel integration** - Works seamlessly with `Log` facade and `logger()` helper
 - ⚡ **Zero config required** - Works out of the box with sensible defaults
 
+
+## Requirements
+
+- Laravel 12.11.0+
+- PHP 8.3+
+
 ## Installation
 
 Install the package via composer:
