@@ -1,9 +1,9 @@
 <?php
 
-namespace TibbsA\ScopedLogger\Tests;
+namespace Tibbs\ScopedLogger\Tests;
 
 use Orchestra\Testbench\TestCase as Orchestra;
-use TibbsA\ScopedLogger\ScopedLoggerServiceProvider;
+use Tibbs\ScopedLogger\ScopedLoggerServiceProvider;
 
 class TestCase extends Orchestra
 {

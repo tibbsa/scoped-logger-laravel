@@ -30,3 +30,7 @@ phpstan.neon
 testbench.yaml
 /docs
 /coverage
+
+# Claude Code
+/.claude
+Build_PRD.md

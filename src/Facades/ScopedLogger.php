@@ -1,16 +1,16 @@
 <?php
 
-namespace TibbsA\ScopedLogger\Facades;
+namespace Tibbs\ScopedLogger\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \TibbsA\ScopedLogger\ScopedLogger
+ * @see \Tibbs\ScopedLogger\ScopedLogger
  */
 class ScopedLogger extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \TibbsA\ScopedLogger\ScopedLogger::class;
+        return \Tibbs\ScopedLogger\ScopedLogger::class;
     }
 }

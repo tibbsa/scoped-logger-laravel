@@ -1,5 +1,5 @@
 includes:
-    - phpstan-baseline.neon
+#    - phpstan-baseline.neon
 
 parameters:
     level: max
@@ -9,3 +9,6 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+    ignoreErrors:
+        # Config files are the correct place to call env()
+        - identifier: larastan.noEnvCallsOutsideOfConfig
