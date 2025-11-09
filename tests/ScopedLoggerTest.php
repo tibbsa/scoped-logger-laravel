@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\ScopedLogger;
 

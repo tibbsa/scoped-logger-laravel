@@ -6,7 +6,6 @@ namespace Tibbs\ScopedLogger;
 
 use Illuminate\Log\LogManager;
 use Illuminate\Support\Facades\Log;
-use Psr\Log\LoggerInterface;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Tibbs\ScopedLogger\Commands\ListScopesCommand;
@@ -48,7 +47,7 @@ class ScopedLoggerServiceProvider extends PackageServiceProvider
     {
         $configArray = $this->getConfigArray();
         $config = Configuration::fromArray($configArray);
-        $validator = new Validator();
+        $validator = new Validator;
 
         $validator->validate($config);
     }

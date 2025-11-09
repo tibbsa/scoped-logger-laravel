@@ -21,7 +21,7 @@ class ListScopesCommand extends Command
         $configArray = config('scoped-logger', []);
         $config = Configuration::fromArray($configArray);
 
-        if (!$config->isEnabled()) {
+        if (! $config->isEnabled()) {
             $this->warn('Scoped logger is currently disabled.');
             $this->line('Enable it by setting SCOPED_LOG_ENABLED=true or config.scoped-logger.enabled=true');
 
@@ -74,7 +74,7 @@ class ListScopesCommand extends Command
         $this->newLine();
         $defaultLevel = $config->defaultLevel();
         $this->line("<fg=gray>Default Level:</> {$defaultLevel}");
-        $this->line("<fg=gray>Total Scopes:</> ".count($scopes));
+        $this->line('<fg=gray>Total Scopes:</> '.count($scopes));
 
         // Show pattern matcher stats if available
         if ($this->hasPatterns($scopes)) {
@@ -93,7 +93,7 @@ class ListScopesCommand extends Command
     }
 
     /**
-     * @param array<string, string|false|\Closure> $scopes
+     * @param  array<string, string|false|\Closure>  $scopes
      */
     protected function hasPatterns(array $scopes): bool
     {

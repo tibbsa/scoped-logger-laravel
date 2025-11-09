@@ -23,7 +23,7 @@ class UnknownScopeException extends Exception
     /**
      * Create a new exception for multiple unknown scopes.
      *
-     * @param array<int, string> $scopes
+     * @param  array<int, string>  $scopes
      */
     public static function forScopes(array $scopes): self
     {

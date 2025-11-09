@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tibbs\ScopedLogger\Support;
 
 use Closure;
-use Illuminate\Support\Str;
 use Tibbs\ScopedLogger\Configuration\Configuration;
 
 class ScopeResolver
@@ -20,7 +19,7 @@ class ScopeResolver
     ) {
         // Initialize pattern matcher if patterns exist
         $scopes = $config->scopes();
-        if (!empty($scopes)) {
+        if (! empty($scopes)) {
             $this->patternMatcher = new PatternMatcher($scopes);
         }
     }
@@ -36,7 +35,7 @@ class ScopeResolver
     /**
      * Set multiple explicit scopes (from the scope() fluent method with array)
      *
-     * @param array<int, string> $scopes
+     * @param  array<int, string>  $scopes
      */
     public function setExplicitScopes(array $scopes): void
     {
@@ -56,7 +55,7 @@ class ScopeResolver
      */
     public function hasExplicitScope(): bool
     {
-        return !empty($this->explicitScopes);
+        return ! empty($this->explicitScopes);
     }
 
     /**
@@ -77,10 +76,9 @@ class ScopeResolver
     public function resolve(): ?string
     {
         // Priority 1: Explicit scope(s) set via scope() method
-        if (!empty($this->explicitScopes)) {
+        if (! empty($this->explicitScopes)) {
             return $this->explicitScopes[0];
         }
-
 
         // Priority 2 & 3: Auto-detect from calling class
         if ($this->config->autoDetectionEnabled()) {
@@ -129,43 +127,43 @@ class ScopeResolver
     protected function findCallingClass(): ?string
     {
         $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, $this->config->autoDetectionStackDepth());
-//        echo "\nTrace:\n" . print_r($trace, true);
+        //        echo "\nTrace:\n" . print_r($trace, true);
 
         $skipPaths = $this->config->autoDetectionSkipPaths();
 
         foreach ($trace as $frame) {
             // Skip frames without a class
-            if (!isset($frame['class'])) {
+            if (! isset($frame['class'])) {
                 continue;
             }
 
             $class = $frame['class'];
             $file = $frame['file'] ?? '';
 
-//            echo "Checking class $class, file $file...\n\n";
+            //            echo "Checking class $class, file $file...\n\n";
 
             // Skip our own package classes (but not test fixtures)
             if (str_starts_with($class, 'Tibbs\\ScopedLogger\\') &&
-                !str_starts_with($class, 'Tibbs\\ScopedLogger\\Tests\\Fixtures\\')) {
-//                echo "Skipping scope vendor\n";
+                ! str_starts_with($class, 'Tibbs\\ScopedLogger\\Tests\\Fixtures\\')) {
+                //                echo "Skipping scope vendor\n";
 
                 continue;
             }
 
             // Skip vendor classes if configured
             if ($this->config->autoDetectionSkipVendor() && $this->isVendorClass($class, $file)) {
-//                echo "Skipping vednor \n";
+                //                echo "Skipping vednor \n";
                 continue;
             }
 
-//            echo "Past vendor check\n";
+            //            echo "Past vendor check\n";
 
             // Skip configured paths
             if ($this->shouldSkipPath($file, $skipPaths)) {
                 continue;
             }
 
-//            echo "\nFound valid class " . print_r($class, true);
+            //            echo "\nFound valid class " . print_r($class, true);
 
             // Found a valid calling class
             return $class;
@@ -179,7 +177,7 @@ class ScopeResolver
      */
     protected function extractScopeFromClass(string $class): ?string
     {
-        if (!class_exists($class)) {
+        if (! class_exists($class)) {
             return null;
         }
 
@@ -194,6 +192,7 @@ class ScopeResolver
                 // Check if method is static
                 if ($method->isStatic() && $method->isPublic()) {
                     $result = $class::$propertyOrMethod();
+
                     return $this->normalizeScopeValue($result);
                 }
 
@@ -210,6 +209,7 @@ class ScopeResolver
                 if ($property->isStatic() && ($property->isPublic() || $property->isProtected())) {
                     $property->setAccessible(true);
                     $result = $property->getValue();
+
                     return $this->normalizeScopeValue($result);
                 }
             }
@@ -236,6 +236,7 @@ class ScopeResolver
 
         if ($value instanceof Closure) {
             $result = $value();
+
             return is_string($result) ? $result : null;
         }
 
@@ -249,7 +250,7 @@ class ScopeResolver
      */
     protected function isVendorClass(string $class, string $file): bool
     {
-//        echo "isVendorClass - class: $class, file: $file\n";
+        //        echo "isVendorClass - class: $class, file: $file\n";
 
         // Check if class is from a common vendor namespace
         $vendorNamespaces = [
@@ -264,19 +265,19 @@ class ScopeResolver
 
         foreach ($vendorNamespaces as $namespace) {
             if (str_starts_with($class, $namespace)) {
-//                echo "  -> Skipping: class matches vendor namespace {$namespace}\n\n";
+                //                echo "  -> Skipping: class matches vendor namespace {$namespace}\n\n";
                 return true;
             }
         }
 
-//        echo "  -> Not vendor class\n\n";
+        //        echo "  -> Not vendor class\n\n";
         return false;
     }
 
     /**
      * Check if a file path should be skipped
      *
-     * @param array<int, string> $skipPaths
+     * @param  array<int, string>  $skipPaths
      */
     protected function shouldSkipPath(string $file, array $skipPaths): bool
     {

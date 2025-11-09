@@ -25,7 +25,7 @@ class TestScopeCommand extends Command
         $configArray = config('scoped-logger', []);
         $config = Configuration::fromArray($configArray);
 
-        if (!$config->isEnabled()) {
+        if (! $config->isEnabled()) {
             $this->warn('Scoped logger is currently disabled.');
 
             return self::FAILURE;
@@ -44,9 +44,9 @@ class TestScopeCommand extends Command
         }
 
         if ($configuredLevel === false) {
-            $this->line("  <fg=red>Configured Level:</> SUPPRESSED");
+            $this->line('  <fg=red>Configured Level:</> SUPPRESSED');
             $this->newLine();
-            $this->error("All logs from this scope will be suppressed.");
+            $this->error('All logs from this scope will be suppressed.');
 
             return self::SUCCESS;
         }
@@ -71,7 +71,7 @@ class TestScopeCommand extends Command
 
         // Show all log levels
         $this->newLine();
-        $this->line("<fg=gray>Log Level Behavior:</>");
+        $this->line('<fg=gray>Log Level Behavior:</>');
 
         $levels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
         foreach ($levels as $level) {
@@ -103,7 +103,7 @@ class TestScopeCommand extends Command
         }
 
         // Check pattern match
-        if (!empty($scopes)) {
+        if (! empty($scopes)) {
             $matcher = new PatternMatcher($scopes);
             $matchedPattern = $matcher->findMatch($scope);
 
@@ -134,7 +134,7 @@ class TestScopeCommand extends Command
         }
 
         // Check pattern match
-        if (!empty($scopes)) {
+        if (! empty($scopes)) {
             $matcher = new PatternMatcher($scopes);
 
             return $matcher->findMatch($scope);

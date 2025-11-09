@@ -10,10 +10,10 @@ use Tibbs\ScopedLogger\Exceptions\InvalidScopeConfigurationException;
 class Configuration
 {
     /**
-     * @param array<string, string|false|\Closure> $scopes
-     * @param array<string, array<string, string|false|\Closure>> $channelScopes
-     * @param array<int, string> $autoDetectionSkipPaths
-     * @param array<int, string> $disabledChannels
+     * @param  array<string, string|false|\Closure>  $scopes
+     * @param  array<string, array<string, string|false|\Closure>>  $channelScopes
+     * @param  array<int, string>  $autoDetectionSkipPaths
+     * @param  array<int, string>  $disabledChannels
      */
     public function __construct(
         protected bool $enabled = true,
@@ -34,13 +34,12 @@ class Configuration
         protected bool $metadataRelativePaths = true,
         protected ?string $metadataBasePath = null,
         protected bool $debugMode = false,
-    ) {
-    }
+    ) {}
 
     /**
      * Create configuration from array (for backwards compatibility)
      *
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public static function fromArray(array $config): self
     {
@@ -62,7 +61,7 @@ class Configuration
 
             // Handle nullable metadata_base_path
             $metadataBasePath = $config['metadata_base_path'] ?? null;
-            if ($metadataBasePath !== null && !is_string($metadataBasePath)) {
+            if ($metadataBasePath !== null && ! is_string($metadataBasePath)) {
                 throw new \InvalidArgumentException('metadata_base_path must be a string or null');
             }
 

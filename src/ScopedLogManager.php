@@ -53,7 +53,7 @@ class ScopedLogManager extends LogManager
     protected function shouldWrapChannel(?string $channel, Configuration $config): bool
     {
         // If scoped logger is disabled globally, don't wrap
-        if (!$config->isEnabled()) {
+        if (! $config->isEnabled()) {
             return false;
         }
 
@@ -74,7 +74,7 @@ class ScopedLogManager extends LogManager
      * This ensures that calls like Log::info(), Log::scope(), etc.
      * go through our wrapped channel, not the original.
      *
-     * @param array<int, mixed> $parameters
+     * @param  array<int, mixed>  $parameters
      */
     public function __call($method, $parameters): mixed
     {

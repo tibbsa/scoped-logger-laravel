@@ -14,7 +14,7 @@ class InvalidScopeConfigurationException extends InvalidArgumentException
 
         return new self(
             "Invalid log level '{$level}' for config key '{$configKey}'. ".
-            "Valid levels are: ".implode(', ', $validLevels).". ".
+            'Valid levels are: '.implode(', ', $validLevels).'. '.
             "You can also use 'false' to suppress a scope completely."
         );
     }
@@ -23,7 +23,7 @@ class InvalidScopeConfigurationException extends InvalidArgumentException
     {
         return new self(
             "Invalid scope pattern '{$pattern}': {$reason}. ".
-            "Patterns support wildcards: * (multiple chars) and ? (single char). ".
+            'Patterns support wildcards: * (multiple chars) and ? (single char). '.
             "Examples: 'App\\Services\\*', 'payment.?'"
         );
     }
@@ -31,8 +31,8 @@ class InvalidScopeConfigurationException extends InvalidArgumentException
     public static function emptyScope(): self
     {
         return new self(
-            "Scope identifier cannot be empty. ".
-            "Provide a valid scope name or class FQCN."
+            'Scope identifier cannot be empty. '.
+            'Provide a valid scope name or class FQCN.'
         );
     }
 
@@ -42,7 +42,7 @@ class InvalidScopeConfigurationException extends InvalidArgumentException
 
         return new self(
             "Invalid unknown_scope_handling value '{$value}'. ".
-            "Valid values are: ".implode(', ', $validValues)
+            'Valid values are: '.implode(', ', $validValues)
         );
     }
 
@@ -50,7 +50,7 @@ class InvalidScopeConfigurationException extends InvalidArgumentException
     {
         return new self(
             "Invalid configuration type: {$message}. ".
-            "Check your config/scoped-logger.php file for type mismatches."
+            'Check your config/scoped-logger.php file for type mismatches.'
         );
     }
 }

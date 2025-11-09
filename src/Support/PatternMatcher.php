@@ -21,7 +21,7 @@ class PatternMatcher
     protected array $matchCache = [];
 
     /**
-     * @param array<string, string|false|\Closure> $scopePatterns
+     * @param  array<string, string|false|\Closure>  $scopePatterns
      */
     public function __construct(
         protected array $scopePatterns
@@ -116,10 +116,10 @@ class PatternMatcher
         $aHasWildcard = str_contains($a, '*') || str_contains($a, '?');
         $bHasWildcard = str_contains($b, '*') || str_contains($b, '?');
 
-        if (!$aHasWildcard && $bHasWildcard) {
+        if (! $aHasWildcard && $bHasWildcard) {
             return -1; // $a more specific
         }
-        if ($aHasWildcard && !$bHasWildcard) {
+        if ($aHasWildcard && ! $bHasWildcard) {
             return 1; // $b more specific
         }
 

@@ -27,10 +27,10 @@ describe('Log Metadata', function () {
         $this->mockLogger->shouldReceive('log')
             ->once()
             ->with('info', 'test', Mockery::on(function ($context) {
-                return !isset($context['file'])
-                    && !isset($context['line'])
-                    && !isset($context['class'])
-                    && !isset($context['function']);
+                return ! isset($context['file'])
+                    && ! isset($context['line'])
+                    && ! isset($context['class'])
+                    && ! isset($context['function']);
             }));
 
         $logger->info('test');
@@ -73,7 +73,7 @@ describe('Log Metadata', function () {
             ->once()
             ->with('info', 'test', Mockery::on(function ($context) {
                 // In test context, we should have class or function info
-                return (isset($context['class']) || isset($context['function']));
+                return isset($context['class']) || isset($context['function']);
             }));
 
         $logger->info('test');
@@ -143,7 +143,7 @@ describe('Log Metadata', function () {
             ->once()
             ->with('info', 'test', Mockery::on(function ($context) {
                 // Should have metadata (at minimum class/function)
-                return (isset($context['class']) || isset($context['function']));
+                return isset($context['class']) || isset($context['function']);
             }));
 
         $logger->info('test');

@@ -13,7 +13,7 @@ class ServiceWithClosure
 
     public function __construct()
     {
-        if (!isset(self::$log_scope)) {
+        if (! isset(self::$log_scope)) {
             self::$log_scope = fn () => 'closure-scope';
         }
     }

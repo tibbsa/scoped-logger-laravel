@@ -30,7 +30,7 @@ class ScopedLogger implements LoggerInterface
     protected Configuration $config;
 
     /**
-     * @param array<string, mixed>|Configuration $config
+     * @param  array<string, mixed>|Configuration  $config
      */
     public function __construct(
         protected LoggerInterface $logger,
@@ -45,7 +45,7 @@ class ScopedLogger implements LoggerInterface
 
         // Initialize pattern matcher with merged scopes (channel-specific + global)
         $mergedScopes = $this->getMergedScopes();
-        if (!empty($mergedScopes)) {
+        if (! empty($mergedScopes)) {
             $this->patternMatcher = new PatternMatcher($mergedScopes);
         }
     }
@@ -71,7 +71,7 @@ class ScopedLogger implements LoggerInterface
      * When multiple scopes are provided, uses "most verbose wins" strategy
      * (the lowest log level among all scopes).
      *
-     * @param string|array<int, string> $scope
+     * @param  string|array<int, string>  $scope
      */
     public function scope(string|array $scope): static
     {
@@ -87,7 +87,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Add context to share with all logs
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function withContext(array $context = []): static
     {
@@ -118,7 +118,7 @@ class ScopedLogger implements LoggerInterface
 
         if ($level !== false) {
             $validLevels = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
-            if (!in_array($level, $validLevels)) {
+            if (! in_array($level, $validLevels)) {
                 throw InvalidScopeConfigurationException::invalidLevel($level, "runtime.{$scope}");
             }
         }
@@ -161,7 +161,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * System is unusable.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function emergency(string|Stringable $message, array $context = []): void
     {
@@ -171,7 +171,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Action must be taken immediately.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function alert(string|Stringable $message, array $context = []): void
     {
@@ -181,7 +181,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Critical conditions.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function critical(string|Stringable $message, array $context = []): void
     {
@@ -191,7 +191,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Runtime errors that do not require immediate action.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function error(string|Stringable $message, array $context = []): void
     {
@@ -201,7 +201,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Exceptional occurrences that are not errors.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function warning(string|Stringable $message, array $context = []): void
     {
@@ -211,7 +211,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Normal but significant events.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function notice(string|Stringable $message, array $context = []): void
     {
@@ -221,7 +221,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Interesting events.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function info(string|Stringable $message, array $context = []): void
     {
@@ -231,7 +231,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Detailed debug information.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function debug(string|Stringable $message, array $context = []): void
     {
@@ -241,7 +241,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Logs with an arbitrary level.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     public function log($level, string|Stringable $message, array $context = []): void
     {
@@ -256,7 +256,7 @@ class ScopedLogger implements LoggerInterface
         }
 
         // Check if scoped logger is enabled
-        if (!$this->config->isEnabled()) {
+        if (! $this->config->isEnabled()) {
             $this->logger->log($levelString, $message, $this->mergeContext($context));
             $this->scopeResolver->clearExplicitScope();
 
@@ -268,14 +268,14 @@ class ScopedLogger implements LoggerInterface
         $scope = empty($explicitScopes) ? $this->scopeResolver->resolve() : null;
 
         // Handle unknown scopes based on configuration
-        if (!empty($explicitScopes)) {
+        if (! empty($explicitScopes)) {
             $this->handleUnknownScopes($explicitScopes, $levelString, $message, $context);
         } elseif ($scope !== null) {
             $this->handleUnknownScopes([$scope], $levelString, $message, $context);
         }
 
         // Determine the effective configured level
-        if (!empty($explicitScopes)) {
+        if (! empty($explicitScopes)) {
             // Multiple scopes: use most verbose (lowest) level
             $configuredLevel = $this->getMostVerboseLevel($explicitScopes);
             $scope = implode(', ', $explicitScopes); // For context
@@ -292,7 +292,7 @@ class ScopedLogger implements LoggerInterface
         }
 
         // Check if this log level meets the threshold
-        if (!$this->shouldLog($levelString, $configuredLevel)) {
+        if (! $this->shouldLog($levelString, $configuredLevel)) {
             $this->scopeResolver->clearExplicitScope();
 
             return;
@@ -358,7 +358,7 @@ class ScopedLogger implements LoggerInterface
      * Get the most verbose (lowest) log level among multiple scopes
      * Returns false if any scope is suppressed
      *
-     * @param array<int, string> $scopes
+     * @param  array<int, string>  $scopes
      */
     protected function getMostVerboseLevel(array $scopes): string|false
     {
@@ -405,7 +405,7 @@ class ScopedLogger implements LoggerInterface
             $resolved = $level();
 
             // Validate the resolved level
-            if ($resolved !== false && !in_array($resolved, ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'])) {
+            if ($resolved !== false && ! in_array($resolved, ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'])) {
                 $resolvedStr = is_string($resolved) ? $resolved : gettype($resolved);
                 throw InvalidScopeConfigurationException::invalidLevel($resolvedStr, 'closure');
             }
@@ -445,7 +445,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Add scope to context if configured
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     protected function addScopeToContext(array $context, ?string $scope): array
@@ -456,7 +456,7 @@ class ScopedLogger implements LoggerInterface
         }
 
         // Don't add scope if disabled in config
-        if (!$this->config->includeScopeInContext()) {
+        if (! $this->config->includeScopeInContext()) {
             return $context;
         }
 
@@ -469,12 +469,12 @@ class ScopedLogger implements LoggerInterface
     /**
      * Add metadata to context if configured
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     protected function addMetadataToContext(array $context): array
     {
-        if (!$this->config->includeMetadata()) {
+        if (! $this->config->includeMetadata()) {
             return $context;
         }
 
@@ -542,7 +542,7 @@ class ScopedLogger implements LoggerInterface
      */
     protected function formatFilePath(string $file): string
     {
-        if (!$this->config->metadataRelativePaths()) {
+        if (! $this->config->metadataRelativePaths()) {
             return $file;
         }
 
@@ -558,12 +558,12 @@ class ScopedLogger implements LoggerInterface
     /**
      * Add debug information to context if debug mode is enabled
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     protected function addDebugInfoToContext(array $context, ?string $scope, string $logLevel, string|false $configuredLevel): array
     {
-        if (!$this->config->debugMode()) {
+        if (! $this->config->debugMode()) {
             return $context;
         }
 
@@ -612,7 +612,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Merge shared context with provided context
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     protected function mergeContext(array $context): array
@@ -652,13 +652,13 @@ class ScopedLogger implements LoggerInterface
     /**
      * Handle unknown scopes based on configuration
      *
-     * @param array<int, string> $scopes
-     * @param array<string, mixed> $context
+     * @param  array<int, string>  $scopes
+     * @param  array<string, mixed>  $context
      */
     protected function handleUnknownScopes(array $scopes, string $level, string|Stringable $message, array $context): void
     {
         // Filter to only unknown scopes and re-index array
-        $unknownScopes = array_values(array_filter($scopes, fn ($scope) => !$this->isScopeKnown($scope)));
+        $unknownScopes = array_values(array_filter($scopes, fn ($scope) => ! $this->isScopeKnown($scope)));
 
         if (empty($unknownScopes)) {
             return;
@@ -672,7 +672,6 @@ class ScopedLogger implements LoggerInterface
                     throw UnknownScopeException::forScope($unknownScopes[0]);
                 }
                 throw UnknownScopeException::forScopes($unknownScopes);
-
             case 'log':
                 // Log a warning using the underlying logger
                 $scopeList = implode("', '", $unknownScopes);
@@ -694,7 +693,7 @@ class ScopedLogger implements LoggerInterface
      * Forward method calls to the underlying logger
      * This ensures compatibility with Laravel's logger extensions
      *
-     * @param array<int, mixed> $parameters
+     * @param  array<int, mixed>  $parameters
      */
     public function __call(string $method, array $parameters): mixed
     {
