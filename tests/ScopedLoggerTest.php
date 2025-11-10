@@ -275,7 +275,8 @@ describe('ScopedLogger', function () {
         $logger = new ScopedLogger($this->mockLogger, $this->config);
 
         // Create a Stringable object that represents a log level
-        $stringableLevel = new class implements Stringable {
+        $stringableLevel = new class implements Stringable
+        {
             public function __toString(): string
             {
                 return 'error';

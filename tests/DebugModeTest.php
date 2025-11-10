@@ -126,6 +126,7 @@ describe('Debug Mode', function () {
             ->once()
             ->with('debug', 'test', m::on(function ($context) {
                 expect($context['scoped_logger_debug']['runtime_override'])->toBe('yes');
+
                 return true;
             }));
 
@@ -152,6 +153,7 @@ describe('Debug Mode', function () {
                 expect($context)->toHaveKey('scoped_logger_debug');
                 expect($context['scoped_logger_debug'])->toHaveKey('matched_pattern');
                 expect($context['scoped_logger_debug']['matched_pattern'])->toBe('App\\Services\\*');
+
                 return true;
             }));
 
@@ -179,6 +181,7 @@ describe('Debug Mode', function () {
                 expect($context)->toHaveKey('scoped_logger_debug');
                 // matched_pattern should not be present for exact matches
                 expect($context['scoped_logger_debug'])->not->toHaveKey('matched_pattern');
+
                 return true;
             }));
 
@@ -205,6 +208,7 @@ describe('Debug Mode', function () {
             ->with('info', 'test', m::on(function ($context) {
                 expect($context['scoped_logger_debug']['resolved_scope'])->toBe('(no scope)');
                 expect($context['scoped_logger_debug']['resolution_method'])->toBe('default (no scope detected)');
+
                 return true;
             }));
 
@@ -233,6 +237,7 @@ describe('Debug Mode', function () {
                 ->with($level, "test {$level}", m::on(function ($context) use ($level) {
                     expect($context['scoped_logger_debug']['log_level'])->toBe($level);
                     expect($context['scoped_logger_debug']['configured_level'])->toBe('debug');
+
                     return true;
                 }));
 
