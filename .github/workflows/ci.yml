@@ -1,18 +1,65 @@
-name: run-tests
+name: CI (Format Checks, Type Checking and Tests)
 
 on:
   push:
     paths:
       - '**.php'
-      - '.github/workflows/run-tests.yml'
+      - '.github/workflows/ci.yml'
+      - 'phpstan.neon.dist'
       - 'phpunit.xml.dist'
       - 'composer.json'
       - 'composer.lock'
 
 jobs:
+  format-check:
+    name: Check Code Style
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Check PHP code style
+        run: ./vendor/bin/pint --test
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: format-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --error-format=github
+
   test:
+    name: Tests (P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    needs: phpstan
+
     strategy:
       fail-fast: true
       matrix:
@@ -20,8 +67,6 @@ jobs:
         php: [8.5, 8.4, 8.3]
         laravel: [12.*]
         stability: [prefer-lowest, prefer-stable]
-
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }}
 
     steps:
       - name: Checkout code
