@@ -11,54 +11,110 @@ on:
       - 'composer.lock'
 
 jobs:
-#  format-check:
-#    name: Check Code Style
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 5
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: '8.4'
-#          coverage: none
-#
-#      - name: Install composer dependencies
-#        uses: ramsey/composer-install@v3
-#
-#      - name: Check PHP code style
-#        run: ./vendor/bin/pint --test
-#
-#  phpstan:
-#    name: PHPStan
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 5
-#    needs: format-check
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: '8.4'
-#          coverage: none
-#
-#      - name: Install composer dependencies
-#        uses: ramsey/composer-install@v3
-#
-#      - name: Run PHPStan
-#        run: ./vendor/bin/phpstan --error-format=github
+  format-check:
+    name: Check Code Style
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Check PHP code style
+        run: ./vendor/bin/pint --test
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: format-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --error-format=github
+
+name: CI
+
+on:
+  push:
+    paths:
+      - '**.php'
+      - '.github/workflows/ci.yml'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+
+jobs:
+  format-check:
+    name: Check Code Style
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Check PHP code style
+        run: ./vendor/bin/pint --test
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: format-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install composer dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --error-format=github
 
   test:
     name: Tests (P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
-#    needs: phpstan
+    needs: phpstan
 
     strategy:
       fail-fast: true
@@ -69,7 +125,7 @@ jobs:
         stability: [prefer-lowest, prefer-stable]
         include:
           - laravel: 12.*
-          - testbench: 10.*
+            testbench: 10.*
 
     steps:
       - name: Checkout code
@@ -80,7 +136,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
-          coverage: none
+          coverage: ${{ matrix.php == '8.4' && matrix.stability == 'prefer-stable' && 'pcov' || 'none' }}
 
       - name: Setup problem matchers
         run: |
@@ -96,4 +152,12 @@ jobs:
         run: composer show -D
 
       - name: Execute tests
-        run: vendor/bin/pest --ci
+        run: vendor/bin/pest --ci ${{ matrix.php == '8.4' && matrix.stability == 'prefer-stable' && '--coverage --min=80' || '' }}
+
+      - name: Upload coverage reports to Codecov
+        if: matrix.php == '8.4' && matrix.stability == 'prefer-stable'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
