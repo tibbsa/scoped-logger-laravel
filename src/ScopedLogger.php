@@ -504,7 +504,7 @@ class ScopedLogger implements LoggerInterface
             $class = $frame['class'] ?? null;
 
             // Skip our own classes
-            if ($class && str_starts_with($class, 'TibbsA\\ScopedLogger\\')) {
+            if ($class && str_starts_with($class, 'Tibbs\\ScopedLogger\\')) {
                 continue;
             }
 
