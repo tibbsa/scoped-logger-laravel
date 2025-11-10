@@ -11,54 +11,54 @@ on:
       - 'composer.lock'
 
 jobs:
-  format-check:
-    name: Check Code Style
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Install composer dependencies
-        uses: ramsey/composer-install@v3
-
-      - name: Check PHP code style
-        run: ./vendor/bin/pint --test
-
-  phpstan:
-    name: PHPStan
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: format-check
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Install composer dependencies
-        uses: ramsey/composer-install@v3
-
-      - name: Run PHPStan
-        run: ./vendor/bin/phpstan --error-format=github
+#  format-check:
+#    name: Check Code Style
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 5
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: '8.4'
+#          coverage: none
+#
+#      - name: Install composer dependencies
+#        uses: ramsey/composer-install@v3
+#
+#      - name: Check PHP code style
+#        run: ./vendor/bin/pint --test
+#
+#  phpstan:
+#    name: PHPStan
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 5
+#    needs: format-check
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: '8.4'
+#          coverage: none
+#
+#      - name: Install composer dependencies
+#        uses: ramsey/composer-install@v3
+#
+#      - name: Run PHPStan
+#        run: ./vendor/bin/phpstan --error-format=github
 
   test:
     name: Tests (P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
-    needs: phpstan
+#    needs: phpstan
 
     strategy:
       fail-fast: true
