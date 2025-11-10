@@ -70,7 +70,6 @@ jobs:
         include:
           - laravel: 12.*
           - testbench: 10.*
-          - carbon: ^2.63
 
     steps:
       - name: Checkout code
