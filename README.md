@@ -1,8 +1,8 @@
 # Fine-grained logging level management for Laravel
 
+[![CI (Format Checks, Type Checking and Tests)](https://github.com/tibbsa/scoped-logger-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/tibbsa/scoped-logger-laravel/actions/workflows/ci.yml)
+[![CodeCov](https://codecov.io/github/tibbsa/scoped-logger-laravel/graph/badge.svg?token=ZKC6CYN5CP)](https://codecov.io/github/tibbsa/scoped-logger-laravel)
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/tibbsa/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbsa/scoped-logger-laravel)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/tibbsa/scoped-logger-laravel/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/tibbsa/scoped-logger-laravel/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/tibbsa/scoped-logger-laravel/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/tibbsa/scoped-logger-laravel/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/tibbsa/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbsa/scoped-logger-laravel)
 
 When troubleshooting specific issues in a Laravel application, it is often helpful to have increased logging
