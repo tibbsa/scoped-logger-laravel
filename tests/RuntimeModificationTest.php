@@ -115,6 +115,21 @@ describe('Runtime Modification', function () {
             ->toThrow(\InvalidArgumentException::class);
     });
 
+    it('throws exception when setting runtime level with empty scope', function () {
+        $mockLogger = m::mock(LoggerInterface::class);
+
+        $config = [
+            'enabled' => true,
+            'default_level' => 'info',
+            'scopes' => [],
+        ];
+
+        $logger = new ScopedLogger($mockLogger, $config);
+
+        expect(fn () => $logger->setRuntimeLevel('', 'debug'))
+            ->toThrow(\InvalidArgumentException::class, 'Scope identifier cannot be empty');
+    });
+
     it('runtime level overrides pattern matches', function () {
         $mockLogger = m::mock(LoggerInterface::class);
         $mockLogger->shouldReceive('log')
@@ -135,6 +150,29 @@ describe('Runtime Modification', function () {
         $logger->setRuntimeLevel('App\\Services\\PaymentService', 'debug');
 
         // Should use runtime level, not pattern match
+        $logger->scope('App\\Services\\PaymentService')->debug('test');
+    });
+
+    it('runtime level can be set on pattern itself', function () {
+        $mockLogger = m::mock(LoggerInterface::class);
+        $mockLogger->shouldReceive('log')
+            ->once()
+            ->with('debug', 'test', m::any());
+
+        $config = [
+            'enabled' => true,
+            'default_level' => 'info',
+            'scopes' => [
+                'App\\Services\\*' => 'error',
+            ],
+        ];
+
+        $logger = new ScopedLogger($mockLogger, $config);
+
+        // Set runtime override on the PATTERN itself
+        $logger->setRuntimeLevel('App\\Services\\*', 'debug');
+
+        // Should use runtime override for the pattern
         $logger->scope('App\\Services\\PaymentService')->debug('test');
     });
 

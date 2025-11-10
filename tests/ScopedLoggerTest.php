@@ -94,6 +94,51 @@ describe('ScopedLogger', function () {
         $logger->scope('suppressed')->emergency('test message');
     });
 
+    it('suppresses logs at all levels when scope is false', function () {
+        $logger = new ScopedLogger($this->mockLogger, $this->config);
+
+        $this->mockLogger->shouldNotReceive('log');
+
+        // Test all log levels - all should be suppressed
+        $logger->scope('suppressed')->debug('test');
+        $logger->scope('suppressed')->info('test');
+        $logger->scope('suppressed')->notice('test');
+        $logger->scope('suppressed')->warning('test');
+        $logger->scope('suppressed')->error('test');
+        $logger->scope('suppressed')->critical('test');
+        $logger->scope('suppressed')->alert('test');
+        $logger->scope('suppressed')->emergency('test');
+    });
+
+    it('suppresses logs when using log method directly with suppressed scope', function () {
+        $logger = new ScopedLogger($this->mockLogger, $this->config);
+
+        $this->mockLogger->shouldNotReceive('log');
+
+        // Use log() method directly with various levels
+        $logger->scope('suppressed')->log('debug', 'test');
+        $logger->scope('suppressed')->log('info', 'test');
+        $logger->scope('suppressed')->log('error', 'test');
+        $logger->scope('suppressed')->log('emergency', 'test');
+    });
+
+    it('shouldLog returns false when configured level is false', function () {
+        $logger = new ScopedLogger($this->mockLogger, $this->config);
+
+        // Use reflection to test the protected shouldLog method
+        $reflection = new \ReflectionClass($logger);
+        $method = $reflection->getMethod('shouldLog');
+        $method->setAccessible(true);
+
+        // Test that shouldLog returns false when configuredLevel is false
+        $result = $method->invoke($logger, 'emergency', false);
+        expect($result)->toBeFalse();
+
+        // Also test with different log levels
+        expect($method->invoke($logger, 'debug', false))->toBeFalse();
+        expect($method->invoke($logger, 'error', false))->toBeFalse();
+    });
+
     it('clears explicit scope after logging', function () {
         $logger = new ScopedLogger($this->mockLogger, $this->config);
 
@@ -224,5 +269,34 @@ describe('ScopedLogger', function () {
         $logger = new ScopedLogger($this->mockLogger, $this->config);
 
         expect($logger->customMethod('arg1', 'arg2'))->toBe('result');
+    });
+
+    it('handles Stringable log level', function () {
+        $logger = new ScopedLogger($this->mockLogger, $this->config);
+
+        // Create a Stringable object that represents a log level
+        $stringableLevel = new class implements Stringable {
+            public function __toString(): string
+            {
+                return 'error';
+            }
+        };
+
+        $this->mockLogger->shouldReceive('log')
+            ->once()
+            ->with('error', 'test message', []);
+
+        $logger->log($stringableLevel, 'test message');
+    });
+
+    it('falls back to info level for non-string non-Stringable level', function () {
+        $logger = new ScopedLogger($this->mockLogger, $this->config);
+
+        $this->mockLogger->shouldReceive('log')
+            ->once()
+            ->with('info', 'test message', []);
+
+        // Pass an integer as the level (not string, not Stringable)
+        $logger->log(123, 'test message');
     });
 });
