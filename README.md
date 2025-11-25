@@ -541,9 +541,24 @@ php artisan scoped-logger:list
 
 # Sort by level instead of name
 php artisan scoped-logger:list --sort=level
+
+# Show effective scopes for a specific channel (merges global + channel overrides)
+php artisan scoped-logger:list --channel=daily
 ```
 
-Displays a table of all scopes, their levels, and whether they're patterns.
+**Options:**
+- `--sort=name|level` - Sort scopes by name (default) or level
+- `--channel=<name>` - Show effective scopes for a specific channel
+
+**Default output** displays:
+- Global scopes table with levels and pattern indicators
+- Channel-specific scope overrides (if configured)
+- Total scope counts and pattern cache statistics
+
+**Channel-specific output** (`--channel`) displays:
+- Merged effective scopes (global + channel overrides)
+- Source column indicating whether each scope comes from `global` or `channel` configuration
+- Count of channel-specific overrides
 
 ### Test scope resolution
 
@@ -552,12 +567,61 @@ php artisan scoped-logger:test payment
 
 # Test with a specific log level
 php artisan scoped-logger:test payment --level=debug
+
+# Test against a specific channel's configuration
+php artisan scoped-logger:test payment --channel=slack
+
+# Test against all channels that have overrides
+php artisan scoped-logger:test payment --all-channels
+
+# Combine options
+php artisan scoped-logger:test payment --level=info --all-channels
 ```
 
-Shows:
+**Options:**
+- `--level=<level>` - Test log level to check (default: debug)
+- `--channel=<name>` - Test against a specific channel's scope configuration
+- `--all-channels` - Test against all channels that have overrides
+
+**Default output** shows:
 - What pattern (if any) matches the scope
 - What log level applies
+- Whether the specified test level would log or be dropped
 - Whether each PSR-3 level would log or be dropped
+
+**Channel-specific output** (`--channel`) additionally shows:
+- Whether the level comes from a channel override (indicated by `(channel override)`)
+
+**All-channels output** (`--all-channels`) shows:
+- Detailed results for global and each channel with overrides
+- Summary comparison table showing how the scope behaves across all channels
+
+Example output for `--all-channels`:
+```
+Testing scope: payment
+Test level: debug
+
+Global (no channel):
+  Configured Level: debug
+  ✓ Log::debug() WILL BE LOGGED
+
+Channel: daily
+  Configured Level: info (channel override)
+  ✗ Log::debug() WILL BE DROPPED
+
+Channel: slack
+  Configured Level: error (channel override)
+  ✗ Log::debug() WILL BE DROPPED
+
+Summary:
++---------+-------+---------------+
+| Channel | Level | Log::debug()  |
++---------+-------+---------------+
+| global  | debug | logs          |
+| daily   | info  | drops         |
+| slack   | error | drops         |
++---------+-------+---------------+
+```
 
 ## Testing
 
