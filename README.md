@@ -2,8 +2,8 @@
 
 [![CI (Format Checks, Type Checking and Tests)](https://github.com/tibbsa/scoped-logger-laravel/actions/workflows/ci.yml/badge.svg)](https://github.com/tibbsa/scoped-logger-laravel/actions/workflows/ci.yml)
 [![CodeCov](https://codecov.io/github/tibbsa/scoped-logger-laravel/graph/badge.svg?token=ZKC6CYN5CP)](https://codecov.io/github/tibbsa/scoped-logger-laravel)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/tibbsa/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbsa/scoped-logger-laravel)
-[![Total Downloads](https://img.shields.io/packagist/dt/tibbsa/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbsa/scoped-logger-laravel)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/tibbs/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbs/scoped-logger-laravel)
+[![Total Downloads](https://img.shields.io/packagist/dt/tibbs/scoped-logger-laravel.svg?style=flat-square)](https://packagist.org/packages/tibbs/scoped-logger-laravel)
 
 When troubleshooting specific issues in a Laravel application, it is often helpful to have increased logging
 visibility regarding a specific portion of your application. However, if you increase your log level, then
@@ -616,3 +616,4 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
