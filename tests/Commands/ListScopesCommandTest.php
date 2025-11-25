@@ -17,7 +17,7 @@ describe('ListScopesCommand', function () {
         ]);
 
         $this->artisan(ListScopesCommand::class)
-            ->expectsOutputToContain('Configured Scopes')
+            ->expectsOutputToContain('Global Scopes')
             ->expectsOutputToContain('payment')
             ->expectsOutputToContain('auth')
             ->expectsOutputToContain('App\\Services\\*')
@@ -29,10 +29,11 @@ describe('ListScopesCommand', function () {
         config([
             'scoped-logger.enabled' => true,
             'scoped-logger.scopes' => [],
+            'scoped-logger.channel_scopes' => [],
         ]);
 
         $this->artisan(ListScopesCommand::class)
-            ->expectsOutputToContain('No scopes configured')
+            ->expectsOutputToContain('No global scopes configured')
             ->assertSuccessful();
     });
 
@@ -70,6 +71,127 @@ describe('ListScopesCommand', function () {
 
         $this->artisan(ListScopesCommand::class)
             ->expectsOutputToContain('SUPPRESSED')
+            ->assertSuccessful();
+    });
+
+    it('displays channel-specific scopes', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.default_level' => 'info',
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+            ],
+            'scoped-logger.channel_scopes' => [
+                'daily' => [
+                    'payment' => 'info',
+                    'api' => 'debug',
+                ],
+                'slack' => [
+                    'payment' => 'error',
+                ],
+            ],
+        ]);
+
+        $this->artisan(ListScopesCommand::class)
+            ->expectsOutputToContain('Global Scopes')
+            ->expectsOutputToContain('Channel-Specific Scopes')
+            ->expectsOutputToContain('daily')
+            ->expectsOutputToContain('slack')
+            ->expectsOutputToContain('api')
+            ->assertSuccessful();
+    });
+
+    it('displays effective scopes for a specific channel', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.default_level' => 'info',
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+                'auth' => 'warning',
+            ],
+            'scoped-logger.channel_scopes' => [
+                'daily' => [
+                    'payment' => 'info',
+                    'api' => 'debug',
+                ],
+            ],
+        ]);
+
+        $this->artisan(ListScopesCommand::class, ['--channel' => 'daily'])
+            ->expectsOutputToContain('Effective Scopes for Channel: daily')
+            ->expectsOutputToContain('payment')
+            ->expectsOutputToContain('auth')
+            ->expectsOutputToContain('api')
+            ->expectsOutputToContain('Source')
+            ->expectsOutputToContain('Channel Overrides')
+            ->assertSuccessful();
+    });
+
+    it('shows only global scopes when channel has no overrides', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.default_level' => 'info',
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+            ],
+            'scoped-logger.channel_scopes' => [],
+        ]);
+
+        $this->artisan(ListScopesCommand::class, ['--channel' => 'daily'])
+            ->expectsOutputToContain('Effective Scopes for Channel: daily')
+            ->expectsOutputToContain('payment')
+            ->assertSuccessful();
+    });
+
+    it('handles channel with no scopes when global scopes are also empty', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.default_level' => 'warning',
+            'scoped-logger.scopes' => [],
+            'scoped-logger.channel_scopes' => [],
+        ]);
+
+        $this->artisan(ListScopesCommand::class, ['--channel' => 'nonexistent'])
+            ->expectsOutputToContain('No scopes configured for this channel')
+            ->expectsOutputToContain('Default Level')
+            ->assertSuccessful();
+    });
+
+    it('displays suppressed scopes in channel configuration', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.scopes' => [
+                'verbose' => 'debug',
+            ],
+            'scoped-logger.channel_scopes' => [
+                'slack' => [
+                    'verbose' => false,
+                ],
+            ],
+        ]);
+
+        $this->artisan(ListScopesCommand::class)
+            ->expectsOutputToContain('Channel-Specific Scopes')
+            ->expectsOutputToContain('slack')
+            ->expectsOutputToContain('SUPPRESSED')
+            ->assertSuccessful();
+    });
+
+    it('shows total channels with overrides count', function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+            ],
+            'scoped-logger.channel_scopes' => [
+                'daily' => ['payment' => 'info'],
+                'slack' => ['payment' => 'error'],
+                'sentry' => ['payment' => 'critical'],
+            ],
+        ]);
+
+        $this->artisan(ListScopesCommand::class)
+            ->expectsOutputToContain('Total Channels with Overrides')
             ->assertSuccessful();
     });
 });
