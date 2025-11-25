@@ -12,7 +12,9 @@ logging channels offer some flexibility in separating different types of log ent
 must all be pre-configured before they can be used.
 
 This package adds the ability to define different logging levels based on the "scope" of a particular log entry.
-Scopes can be explicitly defined when logging, or automatically determined based on the calling class.
+Scopes can be explicitly defined when logging, or automatically determined based on the calling class (via its name,
+a defined property, or a defined method). Logging levels for a given scope can be configured in the `config/scoped-logger.php`
+configuration file or overridden at runtime for debugging purposes.
 
 ## Features
 
@@ -24,12 +26,11 @@ Scopes can be explicitly defined when logging, or automatically determined based
 - ⚠️ **Unknown scope detection** - Configurable handling for unconfigured scopes (exception, log warning, or ignore)
 - 📺 **Per-channel configurations** - Different scope levels for different log channels
 - 🔀 **Multiple scopes** - Log with multiple scopes using "most verbose wins" strategy
-- ⚡ **Runtime modification** - Temporarily override scope levels without config changes
 - 🎛️ **Conditional logging** - Use closures for dynamic levels based on environment, time, etc.
 - 🐛 **Debug mode** - Detailed scope resolution info for troubleshooting
 - 🪝 **Laravel integration** - Works seamlessly with `Log` facade and `logger()` helper
-- ⚡ **Zero config required** - Works out of the box with sensible defaults
-
+- ⚡ **Minimal config required** - Works out of the box with sensible defaults (just define your scopes!)
+- ⚡ **Runtime modification** - Temporarily override scope levels without config changes
 
 ## Requirements
 
@@ -41,7 +42,7 @@ Scopes can be explicitly defined when logging, or automatically determined based
 Install the package via composer:
 
 ```bash
-composer require tibbsa/scoped-logger-laravel
+composer require tibbs/scoped-logger-laravel
 ```
 
 Publish the config file (optional):
@@ -343,7 +344,7 @@ return [
 
 **The underlying Laravel channel log level acts as a floor for all logged events.**
 
-If you're using scoped logging on a channel, that channel should be configured with the **lowest log level** you need (typically `debug`), otherwise the channel will filter out logs before scoped logging can process them.
+If you're using scoped logging on a channel, that channel should be configured with the **lowest log level** you need (typically `debug`), otherwise the channel will filter out logs that scoped logging passes along to record.
 
 ### Example Problem
 
@@ -559,10 +560,41 @@ Shows:
 - What log level applies
 - Whether each PSR-3 level would log or be dropped
 
+## Performance
+
+If your application logs a large number of entries (thousands), some caution may be warranted
+because of the unavoidable overhead that this filtering process adds to each log call. In
+real world applications, it is likely that the overhead associated with actually logging the
+entry will far exceed any overhead from filtering, but for those interested in eeking out every
+last inch of performance, strategies you can employ to minimize the performance impact include:
+
+* *Defining explicit scopes on log calls*, e.g. `logger()->scope('auth')->info('my log')`, thereby
+  eliminating the need for inspection of the calling class to determine the scope
+* *Avoiding using closures for scope definitions*, e.g. `scope => 'debug'`, as this incurs a performance
+  penalty due to the need to evaluate the closure on each log call
+* *Disable metadata extraction in production* (`include_metadata` => `false`): This is one of the most expensive
+  features due to stack trace walking. Only enable it for debugging purposes.
+* *Keep `debug_mode` disabled in production*: This adds extra context processing overhead
+* *Use runtime level overrides for temporary debugging instead of closures*: Runtime overrides (`setRuntimeLevel()`)
+  are actually faster than the baseline explicit scope because they short-circuit other lookups.
+* *Limit the number of wildcard patterns*: While pattern matching is cached, having many patterns increases the
+  initial match time. The difference between 3 and 50+ patterns is minimal after caching, but organizing scopes
+  hierarchically can help.
+* *Set `auto_detection.enabled` => `false` if you always use explicit scopes*: Auto-detection adds overhead per
+  call due to stack trace inspection and reflection.
+* *Reduce `auto_detection.stack_depth` if auto-detection is needed*: The default of 10 frames is usually sufficient;
+  deeper stacks add overhead.
+* *Leverage early filtering*: Logs that get filtered out (below threshold) or from suppressed scopes exit early and
+  are faster than logs that pass through. This means the package has minimal impact on "noisy" debug logging in
+  production when those scopes are set to higher levels.
+* *Avoid passing very large context arrays if performance is critical*: While the overhead is modest, 
+  it does add up at high volumes.
+
 ## Testing
 
 ```bash
-composer test
+composer test                  # standard test suite
+composer test-performance      # performance evaluation test suite
 ```
 
 ## Changelog
