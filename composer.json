@@ -47,8 +47,9 @@
         "post-autoload-dump": "@composer run prepare",
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
+        "test": "vendor/bin/pest --exclude-group=performance",
+        "test-coverage": "vendor/bin/pest --coverage --exclude-group=performance",
+        "test-performance": "vendor/bin/pest --group=performance",
         "format": "vendor/bin/pint"
     },
     "config": {
