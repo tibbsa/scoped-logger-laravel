@@ -11,6 +11,6 @@ class ScopedLogger extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \Tibbs\ScopedLogger\ScopedLogger::class;
+        return 'scoped-logger';
     }
 }
