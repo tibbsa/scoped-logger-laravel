@@ -65,11 +65,13 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.4, 8.3]
-        laravel: [12.*]
+        laravel: ['13.x-dev', '12.*']
         stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: 12.*
-            testbench: 10.*
+          - laravel: '13.x-dev'
+            testbench: '11.x-dev'
+          - laravel: '12.*'
+            testbench: '10.*'
 
     steps:
       - name: Checkout code
