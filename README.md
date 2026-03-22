@@ -34,7 +34,7 @@ configuration file or overridden at runtime for debugging purposes.
 
 ## Requirements
 
-- Laravel 12.11.0+
+- Laravel 12.11.0+ or Laravel 13.x
 - PHP 8.3+
 
 ## Installation
