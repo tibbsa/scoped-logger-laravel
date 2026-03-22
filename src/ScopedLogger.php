@@ -53,7 +53,7 @@ class ScopedLogger implements LoggerInterface
     /**
      * Get merged scopes (channel-specific overrides global)
      *
-     * @return array<string, string|false|\Closure>
+     * @return array<string, string|false|Closure>
      */
     protected function getMergedScopes(): array
     {

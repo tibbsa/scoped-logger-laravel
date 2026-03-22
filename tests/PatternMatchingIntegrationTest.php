@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\ScopedLogger;
+use Tibbs\ScopedLogger\Tests\Fixtures\TestService;
 
 describe('Pattern Matching Integration', function () {
     beforeEach(function () {
@@ -168,6 +169,6 @@ describe('Pattern Matching Integration', function () {
             ->once()
             ->with('debug', 'test', []);
 
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\TestService)->testPatternMatching($logger);
+        $scope = (new TestService)->testPatternMatching($logger);
     });
 });

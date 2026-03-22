@@ -97,7 +97,7 @@ describe('Debug Mode', function () {
         $logger = new ScopedLogger($mockLogger, $config);
 
         // Use reflection to test addDebugInfoToContext directly
-        $reflection = new \ReflectionClass($logger);
+        $reflection = new ReflectionClass($logger);
         $method = $reflection->getMethod('addDebugInfoToContext');
         $method->setAccessible(true);
 

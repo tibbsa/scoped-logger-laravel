@@ -126,7 +126,7 @@ describe('ScopedLogger', function () {
         $logger = new ScopedLogger($this->mockLogger, $this->config);
 
         // Use reflection to test the protected shouldLog method
-        $reflection = new \ReflectionClass($logger);
+        $reflection = new ReflectionClass($logger);
         $method = $reflection->getMethod('shouldLog');
         $method->setAccessible(true);
 
