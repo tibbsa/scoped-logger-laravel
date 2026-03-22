@@ -65,6 +65,6 @@ describe('ScopedLogManager', function () {
 
         // Log::info() goes through __call -> channel() -> ScopedLogger
         expect(fn () => Log::info('test message'))
-            ->not->toThrow(\Exception::class);
+            ->not->toThrow(Exception::class);
     });
 });

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use Tibbs\ScopedLogger\Configuration\Configuration;
 use Tibbs\ScopedLogger\Support\ScopeResolver;
+use Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithClosure;
+use Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithMethod;
+use Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithProperty;
+use Tibbs\ScopedLogger\Tests\Fixtures\TestService;
 
 describe('ScopeResolver', function () {
     it('returns explicit scope when set', function () {
@@ -56,7 +60,7 @@ describe('ScopeResolver', function () {
         ]);
 
         $resolver = new ScopeResolver($config);
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\TestService)->getResolvedScope($resolver);
+        $scope = (new TestService)->getResolvedScope($resolver);
 
         expect($scope)->toBe('Tibbs\\ScopedLogger\\Tests\\Fixtures\\TestService');
     });
@@ -74,7 +78,7 @@ describe('ScopeResolver', function () {
         ]);
 
         $resolver = new ScopeResolver($config);
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithProperty)->getResolvedScope($resolver);
+        $scope = (new ServiceWithProperty)->getResolvedScope($resolver);
 
         expect($scope)->toBe('custom-payment-scope');
     });
@@ -92,7 +96,7 @@ describe('ScopeResolver', function () {
         ]);
 
         $resolver = new ScopeResolver($config);
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithMethod)->getResolvedScope($resolver);
+        $scope = (new ServiceWithMethod)->getResolvedScope($resolver);
 
         expect($scope)->toBe('method-based-scope');
     });
@@ -110,7 +114,7 @@ describe('ScopeResolver', function () {
         ]);
 
         $resolver = new ScopeResolver($config);
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithClosure)->getResolvedScope($resolver);
+        $scope = (new ServiceWithClosure)->getResolvedScope($resolver);
 
         expect($scope)->toBe('closure-scope');
     });
@@ -131,7 +135,7 @@ describe('ScopeResolver', function () {
         $resolver = new ScopeResolver($config);
         $resolver->setExplicitScope('explicit-scope');
 
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\TestService)->getResolvedScope($resolver);
+        $scope = (new TestService)->getResolvedScope($resolver);
 
         expect($scope)->toBe('explicit-scope');
     });
@@ -151,7 +155,7 @@ describe('ScopeResolver', function () {
         ]);
 
         $resolver = new ScopeResolver($config);
-        $scope = (new Tibbs\ScopedLogger\Tests\Fixtures\ServiceWithProperty)->getResolvedScope($resolver);
+        $scope = (new ServiceWithProperty)->getResolvedScope($resolver);
 
         expect($scope)->toBe('Tibbs\\ScopedLogger\\Tests\\Fixtures\\ServiceWithProperty');
     });

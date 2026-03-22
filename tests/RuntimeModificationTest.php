@@ -112,7 +112,7 @@ describe('Runtime Modification', function () {
         $logger = new ScopedLogger($mockLogger, $config);
 
         expect(fn () => $logger->setRuntimeLevel('payment', 'invalid'))
-            ->toThrow(\InvalidArgumentException::class);
+            ->toThrow(InvalidArgumentException::class);
     });
 
     it('throws exception when setting runtime level with empty scope', function () {
@@ -127,7 +127,7 @@ describe('Runtime Modification', function () {
         $logger = new ScopedLogger($mockLogger, $config);
 
         expect(fn () => $logger->setRuntimeLevel('', 'debug'))
-            ->toThrow(\InvalidArgumentException::class, 'Scope identifier cannot be empty');
+            ->toThrow(InvalidArgumentException::class, 'Scope identifier cannot be empty');
     });
 
     it('runtime level overrides pattern matches', function () {

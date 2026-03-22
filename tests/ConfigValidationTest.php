@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Spatie\LaravelPackageTools\Package;
 use Tibbs\ScopedLogger\ScopedLoggerServiceProvider;
 
 describe('Configuration Validation', function () {
@@ -9,7 +10,7 @@ describe('Configuration Validation', function () {
         config(['scoped-logger.default_level' => 'invalid']);
 
         $provider = new ScopedLoggerServiceProvider($this->app);
-        $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+        $provider->configurePackage(new Package);
 
         expect(fn () => $provider->packageBooted())
             ->toThrow(
@@ -27,7 +28,7 @@ describe('Configuration Validation', function () {
         ]);
 
         $provider = new ScopedLoggerServiceProvider($this->app);
-        $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+        $provider->configurePackage(new Package);
 
         expect(fn () => $provider->packageBooted())
             ->toThrow(
@@ -45,7 +46,7 @@ describe('Configuration Validation', function () {
         ]);
 
         $provider = new ScopedLoggerServiceProvider($this->app);
-        $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+        $provider->configurePackage(new Package);
 
         // Should not throw
         $provider->packageBooted();
@@ -65,7 +66,7 @@ describe('Configuration Validation', function () {
             ]);
 
             $provider = new ScopedLoggerServiceProvider($this->app);
-            $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+            $provider->configurePackage(new Package);
 
             // Should not throw
             $provider->packageBooted();
@@ -81,7 +82,7 @@ describe('Configuration Validation', function () {
         ]);
 
         $provider = new ScopedLoggerServiceProvider($this->app);
-        $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+        $provider->configurePackage(new Package);
 
         expect(fn () => $provider->packageBooted())
             ->toThrow(
@@ -100,7 +101,7 @@ describe('Configuration Validation', function () {
             ]);
 
             $provider = new ScopedLoggerServiceProvider($this->app);
-            $provider->configurePackage(new \Spatie\LaravelPackageTools\Package);
+            $provider->configurePackage(new Package);
 
             // Should not throw
             $provider->packageBooted();

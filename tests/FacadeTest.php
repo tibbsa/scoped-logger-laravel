@@ -25,6 +25,6 @@ describe('ScopedLogger Facade', function () {
 
     it('works via the facade', function () {
         expect(fn () => ScopedLogger::scope('test-scope')->info('test message'))
-            ->not->toThrow(\Exception::class);
+            ->not->toThrow(Exception::class);
     });
 });

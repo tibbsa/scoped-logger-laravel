@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Tibbs\ScopedLogger\Commands\TestScopeCommand;
+use Tibbs\ScopedLogger\Configuration\Configuration;
 
 describe('TestScopeCommand', function () {
     it('tests exact scope match', function () {
@@ -104,15 +106,15 @@ describe('TestScopeCommand', function () {
 
         // Debug: check that Configuration loads channel scopes correctly
         $configArray = config('scoped-logger', []);
-        $config = \Tibbs\ScopedLogger\Configuration\Configuration::fromArray($configArray);
+        $config = Configuration::fromArray($configArray);
         expect($config->scopesForChannel('slack'))->toBe(['payment' => 'error']);
 
         // Run command and capture output for debugging
-        \Illuminate\Support\Facades\Artisan::call('scoped-logger:test', [
+        Artisan::call('scoped-logger:test', [
             'scope' => 'payment',
             '--channel' => 'slack',
         ]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
+        $output = Artisan::output();
 
         // Debug: check output contains expected text
         expect($output)->toContain('Testing scope');
@@ -205,11 +207,11 @@ describe('TestScopeCommand', function () {
             ],
         ]);
 
-        \Illuminate\Support\Facades\Artisan::call('scoped-logger:test', [
+        Artisan::call('scoped-logger:test', [
             'scope' => 'verbose',
             '--channel' => 'slack',
         ]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
+        $output = Artisan::output();
 
         expect($output)->toContain('SUPPRESSED');
         expect($output)->toContain('channel override');
@@ -228,11 +230,11 @@ describe('TestScopeCommand', function () {
             ],
         ]);
 
-        \Illuminate\Support\Facades\Artisan::call('scoped-logger:test', [
+        Artisan::call('scoped-logger:test', [
             'scope' => 'App\\Services\\PaymentService',
             '--channel' => 'slack',
         ]);
-        $output = \Illuminate\Support\Facades\Artisan::output();
+        $output = Artisan::output();
 
         expect($output)->toContain('Matched Pattern');
         expect($output)->toContain('error');

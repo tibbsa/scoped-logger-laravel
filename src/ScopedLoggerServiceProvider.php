@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tibbs\ScopedLogger;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\LogManager;
 use Illuminate\Support\Facades\Log;
 use Spatie\LaravelPackageTools\Package;
@@ -29,7 +30,7 @@ class ScopedLoggerServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         // Extend the Log manager to use our ScopedLogger
-        $this->app->extend('log', function (LogManager $logManager, \Illuminate\Contracts\Foundation\Application $app) {
+        $this->app->extend('log', function (LogManager $logManager, Application $app) {
             return new ScopedLogManager($logManager, $app);
         });
 
