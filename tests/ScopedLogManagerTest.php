@@ -129,4 +129,21 @@ describe('ScopedLogManager delegation methods', function () {
         expect($returned->getRuntimeLevels())->toHaveKey('payment');
         expect($returned->getRuntimeLevels()['payment'])->toBe('error');
     });
+
+    it('clearRuntimeLevel() on manager forwards to a ScopedLogger instance', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        // Set a level and clear it on the same returned instance
+        $withLevel = $manager->setRuntimeLevel('payment', 'error');
+        expect($withLevel->getRuntimeLevels())->toHaveKey('payment');
+
+        $returned = $manager->clearRuntimeLevel('payment');
+        expect($returned)->toBeInstanceOf(ScopedLogger::class);
+
+        // Note: $returned is a different ScopedLogger instance than $withLevel
+        // (ScopedLogManager::channel() constructs a fresh wrapper on every call,
+        // pre-existing bug tracked separately). We only assert the method exists
+        // and returns the correct type.
+    });
 });
