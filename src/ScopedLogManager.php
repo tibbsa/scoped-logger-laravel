@@ -95,6 +95,14 @@ class ScopedLogManager extends LogManager
     }
 
     /**
+     * @param  string|array<int, string>  $scope
+     */
+    public function scope(string|array $scope): ScopedLogger
+    {
+        return $this->resolveScopedChannel(__FUNCTION__)->scope($scope);
+    }
+
+    /**
      * Dynamically call the default driver instance.
      *
      * This ensures that calls like Log::info(), Log::scope(), etc.

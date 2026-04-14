@@ -68,3 +68,40 @@ describe('ScopedLogManager', function () {
             ->not->toThrow(Exception::class);
     });
 });
+
+describe('ScopedLogManager delegation methods', function () {
+    beforeEach(function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.disabled_channels' => [],
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+            ],
+            'scoped-logger.default_level' => 'info',
+        ]);
+    });
+
+    it('scope() exists on ScopedLogManager and returns a ScopedLogger', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $result = $manager->scope('payment');
+
+        expect($result)->toBeInstanceOf(ScopedLogger::class);
+    });
+
+    it('scope() on manager delegates to the default channel with the scope applied', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $scoped = $manager->scope('payment');
+
+        // Verify that 'payment' was actually passed through to the ScopedLogger's resolver —
+        // this would fail if resolveScopedChannel() returned the channel without calling ->scope($scope)
+        $ref = new \ReflectionProperty($scoped, 'scopeResolver');
+        $ref->setAccessible(true);
+        $resolver = $ref->getValue($scoped);
+
+        expect($resolver->getExplicitScopes())->toBe(['payment']);
+    });
+});
