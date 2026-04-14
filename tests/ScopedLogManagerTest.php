@@ -98,7 +98,7 @@ describe('ScopedLogManager delegation methods', function () {
 
         // Verify that 'payment' was actually passed through to the ScopedLogger's resolver —
         // this would fail if resolveScopedChannel() returned the channel without calling ->scope($scope)
-        $ref = new \ReflectionProperty($scoped, 'scopeResolver');
+        $ref = new ReflectionProperty($scoped, 'scopeResolver');
         $ref->setAccessible(true);
         $resolver = $ref->getValue($scoped);
 
