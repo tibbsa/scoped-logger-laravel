@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tibbs\ScopedLogger;
 
 use Illuminate\Log\LogManager;
+use LogicException;
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Configuration\Configuration;
 
@@ -66,6 +67,31 @@ class ScopedLogManager extends LogManager
 
         // Default: wrap all channels (global by default)
         return true;
+    }
+
+    /**
+     * Resolve the default channel and assert it is a ScopedLogger.
+     *
+     * Used by the explicit delegation methods below so static analyzers
+     * (phpstan, larastan) can see that package-specific methods like
+     * scope() and setRuntimeLevel() exist on the class bound to `log`.
+     */
+    private function resolveScopedChannel(string $method): ScopedLogger
+    {
+        $channel = $this->channel();
+
+        if (! $channel instanceof ScopedLogger) {
+            throw new LogicException(sprintf(
+                'Cannot call %s() on the default channel because it is not wrapped by ScopedLogger. '
+                .'Check that scoped-logger is enabled and the default channel is not listed in '
+                .'scoped-logger.disabled_channels. Use Log::channel(\'other\')->%s(...) '
+                .'to target a specific scoped channel directly.',
+                $method,
+                $method
+            ));
+        }
+
+        return $channel;
     }
 
     /**
