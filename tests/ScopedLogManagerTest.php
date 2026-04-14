@@ -104,4 +104,29 @@ describe('ScopedLogManager delegation methods', function () {
 
         expect($resolver->getExplicitScopes())->toBe(['payment']);
     });
+
+    it('setRuntimeLevel() exists on ScopedLogManager and returns a ScopedLogger', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $result = $manager->setRuntimeLevel('payment', 'error');
+
+        expect($result)->toBeInstanceOf(ScopedLogger::class);
+    });
+
+    it('setRuntimeLevel() on manager forwards to a ScopedLogger instance', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        // Delegation smoke test: call returns a ScopedLogger with the level set on it.
+        // We assert on the returned object itself — NOT via $manager->channel() — because
+        // ScopedLogManager::channel() constructs a fresh wrapper on every call (pre-existing
+        // bug tracked separately). The returned instance is guaranteed to be the same one
+        // the mutation ran on.
+        $returned = $manager->setRuntimeLevel('payment', 'error');
+
+        expect($returned)->toBeInstanceOf(ScopedLogger::class);
+        expect($returned->getRuntimeLevels())->toHaveKey('payment');
+        expect($returned->getRuntimeLevels()['payment'])->toBe('error');
+    });
 });

@@ -102,6 +102,11 @@ class ScopedLogManager extends LogManager
         return $this->resolveScopedChannel(__FUNCTION__)->scope($scope);
     }
 
+    public function setRuntimeLevel(string $scope, string|false $level): ScopedLogger
+    {
+        return $this->resolveScopedChannel(__FUNCTION__)->setRuntimeLevel($scope, $level);
+    }
+
     /**
      * Dynamically call the default driver instance.
      *
