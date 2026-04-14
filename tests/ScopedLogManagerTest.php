@@ -164,4 +164,64 @@ describe('ScopedLogManager delegation methods', function () {
 
         expect($result)->toBeArray();
     });
+
+    describe('with disabled default channel', function () {
+        beforeEach(function () {
+            // Laravel's default log channel in Testbench is 'stack'.
+            // Put it in disabled_channels so ScopedLogManager::channel()
+            // returns the raw Laravel logger, not a ScopedLogger.
+            config([
+                'scoped-logger.enabled' => true,
+                'scoped-logger.disabled_channels' => ['stack'],
+                'scoped-logger.scopes' => [],
+                'scoped-logger.default_level' => 'info',
+            ]);
+        });
+
+        it('scope() throws LogicException with guidance', function () {
+            $manager = Log::getFacadeRoot();
+            assert($manager instanceof ScopedLogManager);
+
+            expect(fn () => $manager->scope('payment'))
+                ->toThrow(
+                    LogicException::class,
+                    'Cannot call scope() on the default channel because it is not wrapped by ScopedLogger'
+                );
+        });
+
+        it('setRuntimeLevel() throws LogicException with guidance', function () {
+            $manager = Log::getFacadeRoot();
+            assert($manager instanceof ScopedLogManager);
+
+            expect(fn () => $manager->setRuntimeLevel('payment', 'error'))
+                ->toThrow(
+                    LogicException::class,
+                    'Cannot call setRuntimeLevel() on the default channel'
+                );
+        });
+
+        it('clearRuntimeLevel() throws LogicException', function () {
+            $manager = Log::getFacadeRoot();
+            assert($manager instanceof ScopedLogManager);
+
+            expect(fn () => $manager->clearRuntimeLevel('payment'))
+                ->toThrow(LogicException::class, 'Cannot call clearRuntimeLevel()');
+        });
+
+        it('clearAllRuntimeLevels() throws LogicException', function () {
+            $manager = Log::getFacadeRoot();
+            assert($manager instanceof ScopedLogManager);
+
+            expect(fn () => $manager->clearAllRuntimeLevels())
+                ->toThrow(LogicException::class, 'Cannot call clearAllRuntimeLevels()');
+        });
+
+        it('getRuntimeLevels() throws LogicException', function () {
+            $manager = Log::getFacadeRoot();
+            assert($manager instanceof ScopedLogManager);
+
+            expect(fn () => $manager->getRuntimeLevels())
+                ->toThrow(LogicException::class, 'Cannot call getRuntimeLevels()');
+        });
+    });
 });
