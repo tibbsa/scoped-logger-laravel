@@ -146,4 +146,13 @@ describe('ScopedLogManager delegation methods', function () {
         // pre-existing bug tracked separately). We only assert the method exists
         // and returns the correct type.
     });
+
+    it('clearAllRuntimeLevels() on manager forwards to a ScopedLogger instance', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $returned = $manager->clearAllRuntimeLevels();
+        expect($returned)->toBeInstanceOf(ScopedLogger::class);
+        expect($returned->getRuntimeLevels())->toBe([]);
+    });
 });
