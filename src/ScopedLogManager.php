@@ -118,6 +118,14 @@ class ScopedLogManager extends LogManager
     }
 
     /**
+     * @return array<string, string|false>
+     */
+    public function getRuntimeLevels(): array
+    {
+        return $this->resolveScopedChannel(__FUNCTION__)->getRuntimeLevels();
+    }
+
+    /**
      * Dynamically call the default driver instance.
      *
      * This ensures that calls like Log::info(), Log::scope(), etc.

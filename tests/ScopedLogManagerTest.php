@@ -155,4 +155,13 @@ describe('ScopedLogManager delegation methods', function () {
         expect($returned)->toBeInstanceOf(ScopedLogger::class);
         expect($returned->getRuntimeLevels())->toBe([]);
     });
+
+    it('getRuntimeLevels() on manager returns an array', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $result = $manager->getRuntimeLevels();
+
+        expect($result)->toBeArray();
+    });
 });
