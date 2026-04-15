@@ -1,0 +1,5 @@
+services:
+    -
+        class: Tibbs\ScopedLogger\PHPStan\LogFacadeExtension
+        tags:
+            - phpstan.broker.methodsClassReflectionExtension

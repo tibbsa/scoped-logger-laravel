@@ -34,7 +34,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Tibbs\\ScopedLogger\\": "src/"
+            "Tibbs\\ScopedLogger\\": "src/",
+            "Tibbs\\ScopedLogger\\PHPStan\\": "phpstan/"
         }
     },
     "autoload-dev": {
@@ -67,6 +68,11 @@
             "aliases": {
                 "ScopedLogger": "Tibbs\\ScopedLogger\\Facades\\ScopedLogger"
             }
+        },
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
         }
     },
     "minimum-stability": "stable"
