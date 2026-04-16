@@ -11,6 +11,9 @@ use Tibbs\ScopedLogger\Configuration\Configuration;
 
 class ScopedLogManager extends LogManager
 {
+    /** @var array<string, ScopedLogger> */
+    protected array $wrappedChannels = [];
+
     public function __construct(
         protected LogManager $originalLogManager,
         $app
@@ -34,7 +37,11 @@ class ScopedLogManager extends LogManager
 
         // Check if this channel should be wrapped
         if ($this->shouldWrapChannel($channelNameString, $config)) {
-            return new ScopedLogger($logger, $config, $channelNameString);
+            if (! isset($this->wrappedChannels[$channelNameString])) {
+                $this->wrappedChannels[$channelNameString] = new ScopedLogger($logger, $config, $channelNameString);
+            }
+
+            return $this->wrappedChannels[$channelNameString];
         }
 
         return $logger;

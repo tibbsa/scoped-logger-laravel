@@ -119,10 +119,6 @@ describe('ScopedLogManager delegation methods', function () {
         assert($manager instanceof ScopedLogManager);
 
         // Delegation smoke test: call returns a ScopedLogger with the level set on it.
-        // We assert on the returned object itself — NOT via $manager->channel() — because
-        // ScopedLogManager::channel() constructs a fresh wrapper on every call (pre-existing
-        // bug tracked separately). The returned instance is guaranteed to be the same one
-        // the mutation ran on.
         $returned = $manager->setRuntimeLevel('payment', 'error');
 
         expect($returned)->toBeInstanceOf(ScopedLogger::class);
@@ -140,11 +136,6 @@ describe('ScopedLogManager delegation methods', function () {
 
         $returned = $manager->clearRuntimeLevel('payment');
         expect($returned)->toBeInstanceOf(ScopedLogger::class);
-
-        // Note: $returned is a different ScopedLogger instance than $withLevel
-        // (ScopedLogManager::channel() constructs a fresh wrapper on every call,
-        // pre-existing bug tracked separately). We only assert the method exists
-        // and returns the correct type.
     });
 
     it('clearAllRuntimeLevels() on manager forwards to a ScopedLogger instance', function () {
@@ -223,5 +214,69 @@ describe('ScopedLogManager delegation methods', function () {
             expect(fn () => $manager->getRuntimeLevels())
                 ->toThrow(LogicException::class, 'Cannot call getRuntimeLevels()');
         });
+    });
+});
+
+describe('ScopedLogManager channel caching', function () {
+    beforeEach(function () {
+        config([
+            'scoped-logger.enabled' => true,
+            'scoped-logger.disabled_channels' => [],
+            'scoped-logger.scopes' => [
+                'payment' => 'debug',
+            ],
+            'scoped-logger.default_level' => 'info',
+        ]);
+    });
+
+    it('returns the same ScopedLogger instance for the same channel', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $first = $manager->channel();
+        $second = $manager->channel();
+
+        expect($first)->toBe($second);
+    });
+
+    it('returns different ScopedLogger instances for different channels', function () {
+        config(['logging.channels.single' => ['driver' => 'single', 'path' => storage_path('logs/laravel.log')]]);
+
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $default = $manager->channel();
+        $single = $manager->channel('single');
+
+        expect($default)->not->toBe($single);
+    });
+
+    it('preserves runtime levels set via the manager across channel calls', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $channel = $manager->channel();
+        assert($channel instanceof ScopedLogger);
+        $channel->setRuntimeLevel('payment', 'error');
+
+        $sameChannel = $manager->channel();
+        assert($sameChannel instanceof ScopedLogger);
+
+        expect($sameChannel->getRuntimeLevels())->toHaveKey('payment');
+        expect($sameChannel->getRuntimeLevels()['payment'])->toBe('error');
+    });
+
+    it('preserves shared context across channel calls', function () {
+        $manager = Log::getFacadeRoot();
+        assert($manager instanceof ScopedLogManager);
+
+        $channel = $manager->channel();
+        assert($channel instanceof ScopedLogger);
+        $channel->withContext(['request_id' => 'abc123']);
+
+        $sameChannel = $manager->channel();
+
+        // The same instance should have the context
+        expect($sameChannel)->toBe($channel);
     });
 });
