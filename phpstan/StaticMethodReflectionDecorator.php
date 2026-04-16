@@ -7,6 +7,7 @@ namespace Tibbs\ScopedLogger\PHPStan;
 use PHPStan\Reflection\ClassMemberReflection;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ParametersAcceptor;
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\Type;
 
@@ -25,9 +26,7 @@ use PHPStan\Type\Type;
  */
 final class StaticMethodReflectionDecorator implements MethodReflection
 {
-    public function __construct(private readonly MethodReflection $wrapped)
-    {
-    }
+    public function __construct(private readonly MethodReflection $wrapped) {}
 
     public function getDeclaringClass(): ClassReflection
     {
@@ -68,7 +67,7 @@ final class StaticMethodReflectionDecorator implements MethodReflection
         return $this->wrapped->getPrototype();
     }
 
-    /** @return list<\PHPStan\Reflection\ParametersAcceptor> */
+    /** @return list<ParametersAcceptor> */
     public function getVariants(): array
     {
         return $this->wrapped->getVariants();

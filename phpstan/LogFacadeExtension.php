@@ -39,9 +39,7 @@ class LogFacadeExtension implements MethodsClassReflectionExtension
         'getRuntimeLevels',
     ];
 
-    public function __construct(private ReflectionProvider $reflectionProvider)
-    {
-    }
+    public function __construct(private ReflectionProvider $reflectionProvider) {}
 
     public function hasMethod(ClassReflection $classReflection, string $methodName): bool
     {
@@ -59,7 +57,7 @@ class LogFacadeExtension implements MethodsClassReflectionExtension
     {
         $reflection = $this->reflectionProvider
             ->getClass(ScopedLogManager::class)
-            ->getMethod($methodName, new OutOfClassScope());
+            ->getMethod($methodName, new OutOfClassScope);
 
         return new StaticMethodReflectionDecorator($reflection);
     }
