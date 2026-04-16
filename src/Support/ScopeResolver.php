@@ -207,7 +207,6 @@ class ScopeResolver
 
                 // Only read public or protected static properties
                 if ($property->isStatic() && ($property->isPublic() || $property->isProtected())) {
-                    $property->setAccessible(true);
                     $result = $property->getValue();
 
                     return $this->normalizeScopeValue($result);
