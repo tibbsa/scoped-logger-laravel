@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Log;
+use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
+use Tibbs\ScopedLogger\PassThroughScopedLogger;
 use Tibbs\ScopedLogger\ScopedLogger;
 use Tibbs\ScopedLogger\ScopedLogManager;
 
@@ -18,17 +20,18 @@ describe('ScopedLogManager', function () {
         expect($logger)->toBeInstanceOf(ScopedLogger::class);
     });
 
-    it('returns original logger when scoped logger is disabled', function () {
+    it('returns a PassThroughScopedLogger when scoped logger is disabled', function () {
         config([
             'scoped-logger.enabled' => false,
         ]);
 
         $logger = Log::channel();
 
+        expect($logger)->toBeInstanceOf(PassThroughScopedLogger::class);
         expect($logger)->not->toBeInstanceOf(ScopedLogger::class);
     });
 
-    it('returns original logger for disabled channels', function () {
+    it('returns a PassThroughScopedLogger for disabled channels', function () {
         config([
             'scoped-logger.enabled' => true,
             'scoped-logger.disabled_channels' => ['stack'],
@@ -36,6 +39,7 @@ describe('ScopedLogManager', function () {
 
         $logger = Log::channel('stack');
 
+        expect($logger)->toBeInstanceOf(PassThroughScopedLogger::class);
         expect($logger)->not->toBeInstanceOf(ScopedLogger::class);
     });
 
@@ -156,11 +160,11 @@ describe('ScopedLogManager delegation methods', function () {
         expect($result)->toBeArray();
     });
 
-    describe('with disabled default channel', function () {
+    describe('with disabled default channel (pass-through mode)', function () {
         beforeEach(function () {
             // Laravel's default log channel in Testbench is 'stack'.
             // Put it in disabled_channels so ScopedLogManager::channel()
-            // returns the raw Laravel logger, not a ScopedLogger.
+            // returns a PassThroughScopedLogger, not an active ScopedLogger.
             config([
                 'scoped-logger.enabled' => true,
                 'scoped-logger.disabled_channels' => ['stack'],
@@ -169,50 +173,60 @@ describe('ScopedLogManager delegation methods', function () {
             ]);
         });
 
-        it('scope() throws LogicException with guidance', function () {
+        it('scope() silently no-ops and returns a ScopedLoggerContract', function () {
             $manager = Log::getFacadeRoot();
             assert($manager instanceof ScopedLogManager);
 
-            expect(fn () => $manager->scope('payment'))
-                ->toThrow(
-                    LogicException::class,
-                    'Cannot call scope() on the default channel because it is not wrapped by ScopedLogger'
-                );
+            $result = $manager->scope('payment');
+
+            expect($result)->toBeInstanceOf(ScopedLoggerContract::class);
+            expect($result)->toBeInstanceOf(PassThroughScopedLogger::class);
         });
 
-        it('setRuntimeLevel() throws LogicException with guidance', function () {
+        it('setRuntimeLevel() silently no-ops', function () {
             $manager = Log::getFacadeRoot();
             assert($manager instanceof ScopedLogManager);
 
-            expect(fn () => $manager->setRuntimeLevel('payment', 'error'))
-                ->toThrow(
-                    LogicException::class,
-                    'Cannot call setRuntimeLevel() on the default channel'
-                );
+            $result = $manager->setRuntimeLevel('payment', 'error');
+
+            expect($result)->toBeInstanceOf(PassThroughScopedLogger::class);
+            expect($result->getRuntimeLevels())->toBe([]);
         });
 
-        it('clearRuntimeLevel() throws LogicException', function () {
+        it('clearRuntimeLevel() silently no-ops', function () {
             $manager = Log::getFacadeRoot();
             assert($manager instanceof ScopedLogManager);
 
-            expect(fn () => $manager->clearRuntimeLevel('payment'))
-                ->toThrow(LogicException::class, 'Cannot call clearRuntimeLevel()');
+            $result = $manager->clearRuntimeLevel('payment');
+
+            expect($result)->toBeInstanceOf(PassThroughScopedLogger::class);
         });
 
-        it('clearAllRuntimeLevels() throws LogicException', function () {
+        it('clearAllRuntimeLevels() silently no-ops', function () {
             $manager = Log::getFacadeRoot();
             assert($manager instanceof ScopedLogManager);
 
-            expect(fn () => $manager->clearAllRuntimeLevels())
-                ->toThrow(LogicException::class, 'Cannot call clearAllRuntimeLevels()');
+            $result = $manager->clearAllRuntimeLevels();
+
+            expect($result)->toBeInstanceOf(PassThroughScopedLogger::class);
+            expect($result->getRuntimeLevels())->toBe([]);
         });
 
-        it('getRuntimeLevels() throws LogicException', function () {
+        it('getRuntimeLevels() returns an empty array', function () {
             $manager = Log::getFacadeRoot();
             assert($manager instanceof ScopedLogManager);
 
-            expect(fn () => $manager->getRuntimeLevels())
-                ->toThrow(LogicException::class, 'Cannot call getRuntimeLevels()');
+            expect($manager->getRuntimeLevels())->toBe([]);
+        });
+
+        it('Log::scope(...)->info(...) works end-to-end without error', function () {
+            expect(fn () => Log::scope('anything')->info('test message'))
+                ->not->toThrow(Exception::class);
+        });
+
+        it('chained scope with runtime level works without error', function () {
+            expect(fn () => Log::scope('payment')->setRuntimeLevel('payment', 'debug')->info('msg'))
+                ->not->toThrow(Exception::class);
         });
     });
 });

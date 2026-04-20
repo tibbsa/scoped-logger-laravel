@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Tibbs\ScopedLogger;
 
 use Illuminate\Log\LogManager;
-use LogicException;
-use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Configuration\Configuration;
+use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
 
 class ScopedLogManager extends LogManager
 {
-    /** @var array<string, ScopedLogger> */
+    /** @var array<string, ScopedLoggerContract> */
     protected array $wrappedChannels = [];
 
     public function __construct(
@@ -22,9 +21,15 @@ class ScopedLogManager extends LogManager
     }
 
     /**
-     * Get a log channel instance, wrapped in ScopedLogger
+     * Get a log channel instance.
+     *
+     * Always returns a {@see ScopedLoggerContract} — either an active
+     * {@see ScopedLogger} (when scoped logging is enabled for this channel)
+     * or a {@see PassThroughScopedLogger} (when disabled globally or
+     * for this specific channel). This keeps `Log::scope(...)` and other
+     * fluent calls safe even when the package is turned off.
      */
-    public function channel($channel = null): LoggerInterface
+    public function channel($channel = null): ScopedLoggerContract
     {
         $logger = $this->originalLogManager->channel($channel);
         /** @var array<string, mixed> $configArray */
@@ -32,94 +37,67 @@ class ScopedLogManager extends LogManager
         $config = Configuration::fromArray($configArray);
         $channelName = $channel ?? $this->getDefaultDriver();
 
-        // Ensure channelName is string
         $channelNameString = is_string($channelName) ? $channelName : 'default';
 
-        // Check if this channel should be wrapped
-        if ($this->shouldWrapChannel($channelNameString, $config)) {
-            if (! isset($this->wrappedChannels[$channelNameString])) {
-                $this->wrappedChannels[$channelNameString] = new ScopedLogger($logger, $config, $channelNameString);
-            }
-
+        if (isset($this->wrappedChannels[$channelNameString])) {
             return $this->wrappedChannels[$channelNameString];
         }
 
-        return $logger;
+        $wrapper = $this->shouldWrapChannel($channelNameString, $config)
+            ? new ScopedLogger($logger, $config, $channelNameString)
+            : new PassThroughScopedLogger($logger);
+
+        $this->wrappedChannels[$channelNameString] = $wrapper;
+
+        return $wrapper;
     }
 
     /**
-     * Get a log driver instance (alias for channel)
+     * Get a log driver instance (alias for channel).
      */
-    public function driver($driver = null): LoggerInterface
+    public function driver($driver = null): ScopedLoggerContract
     {
         return $this->channel($driver);
     }
 
     /**
-     * Check if a channel should be wrapped with ScopedLogger
+     * Check if a channel should be wrapped with ScopedLogger (active scoped
+     * logging) versus PassThroughScopedLogger (no-op fallback).
      */
     protected function shouldWrapChannel(string $channel, Configuration $config): bool
     {
-        // If scoped logger is disabled globally, don't wrap
         if (! $config->isEnabled()) {
             return false;
         }
 
-        // Check if channel is in disabled list
         if (in_array($channel, $config->disabledChannels())) {
             return false;
         }
 
-        // Default: wrap all channels (global by default)
         return true;
-    }
-
-    /**
-     * Resolve the default channel and assert it is a ScopedLogger.
-     *
-     * Used by the explicit delegation methods below so static analyzers
-     * (phpstan, larastan) can see that package-specific methods like
-     * scope() and setRuntimeLevel() exist on the class bound to `log`.
-     */
-    private function resolveScopedChannel(string $method): ScopedLogger
-    {
-        $channel = $this->channel();
-
-        if (! $channel instanceof ScopedLogger) {
-            throw new LogicException(sprintf(
-                'Cannot call %s() on the default channel because it is not wrapped by ScopedLogger. '
-                .'Check that scoped-logger is enabled and the default channel is not listed in '
-                .'scoped-logger.disabled_channels. Use Log::channel(\'other\')->%s(...) '
-                .'to target a specific scoped channel directly.',
-                $method,
-                $method
-            ));
-        }
-
-        return $channel;
     }
 
     /**
      * @param  string|array<int, string>  $scope
      */
-    public function scope(string|array $scope): ScopedLogger
+    public function scope(string|array $scope): ScopedLoggerContract
     {
-        return $this->resolveScopedChannel(__FUNCTION__)->scope($scope);
+        return $this->channel()->scope($scope);
     }
 
-    public function setRuntimeLevel(string $scope, string|false $level): ScopedLogger
+    public function setRuntimeLevel(string $scope, string|false $level): ScopedLoggerContract
     {
-        return $this->resolveScopedChannel(__FUNCTION__)->setRuntimeLevel($scope, $level);
+        return $this->channel()->setRuntimeLevel($scope, $level);
     }
 
-    public function clearRuntimeLevel(string $scope): ScopedLogger
+    public function clearRuntimeLevel(string $scope): ScopedLoggerContract
     {
-        return $this->resolveScopedChannel(__FUNCTION__)->clearRuntimeLevel($scope);
+        return $this->channel()->clearRuntimeLevel($scope);
     }
 
-    public function clearAllRuntimeLevels(): ScopedLogger
+    public function clearAllRuntimeLevels(): ScopedLoggerContract
     {
-        return $this->resolveScopedChannel(__FUNCTION__)->clearAllRuntimeLevels();
+        return $this->channel()->clearAllRuntimeLevels();
     }
 
     /**
@@ -127,7 +105,7 @@ class ScopedLogManager extends LogManager
      */
     public function getRuntimeLevels(): array
     {
-        return $this->resolveScopedChannel(__FUNCTION__)->getRuntimeLevels();
+        return $this->channel()->getRuntimeLevels();
     }
 
     /**
