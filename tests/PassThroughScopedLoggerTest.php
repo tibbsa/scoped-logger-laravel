@@ -86,6 +86,50 @@ describe('PassThroughScopedLogger - unit', function () {
 
         $this->passThrough->scope('payment')->info('hi');
     });
+
+    it('forwards unknown method calls to the underlying logger via __call', function () {
+        // Laravel's logger exposes extensions beyond PSR-3 (e.g. getLogger()).
+        // Anything not on the scoped-logger API should transparently forward.
+        $underlying = new class implements LoggerInterface
+        {
+            /** @var array<int, array{method: string, args: array<int, mixed>}> */
+            public array $calls = [];
+
+            public function emergency(string|Stringable $message, array $context = []): void {}
+
+            public function alert(string|Stringable $message, array $context = []): void {}
+
+            public function critical(string|Stringable $message, array $context = []): void {}
+
+            public function error(string|Stringable $message, array $context = []): void {}
+
+            public function warning(string|Stringable $message, array $context = []): void {}
+
+            public function notice(string|Stringable $message, array $context = []): void {}
+
+            public function info(string|Stringable $message, array $context = []): void {}
+
+            public function debug(string|Stringable $message, array $context = []): void {}
+
+            public function log($level, string|Stringable $message, array $context = []): void {}
+
+            public function write(string $message, string $channel): string
+            {
+                $this->calls[] = ['method' => 'write', 'args' => [$message, $channel]];
+
+                return "wrote:{$message}:{$channel}";
+            }
+        };
+
+        $passThrough = new PassThroughScopedLogger($underlying);
+
+        $result = $passThrough->write('hello', 'stack');
+
+        expect($result)->toBe('wrote:hello:stack');
+        expect($underlying->calls)->toBe([
+            ['method' => 'write', 'args' => ['hello', 'stack']],
+        ]);
+    });
 });
 
 describe('PassThroughScopedLogger - integration via Log facade', function () {
