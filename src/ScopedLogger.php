@@ -8,12 +8,13 @@ use Closure;
 use Psr\Log\LoggerInterface;
 use Stringable;
 use Tibbs\ScopedLogger\Configuration\Configuration;
+use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
 use Tibbs\ScopedLogger\Exceptions\InvalidScopeConfigurationException;
 use Tibbs\ScopedLogger\Exceptions\UnknownScopeException;
 use Tibbs\ScopedLogger\Support\PatternMatcher;
 use Tibbs\ScopedLogger\Support\ScopeResolver;
 
-class ScopedLogger implements LoggerInterface
+class ScopedLogger implements ScopedLoggerContract
 {
     protected ScopeResolver $scopeResolver;
 
