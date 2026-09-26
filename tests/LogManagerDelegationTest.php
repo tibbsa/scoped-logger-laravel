@@ -6,6 +6,7 @@ use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Log\LogManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Monolog\Handler\NullHandler;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger as Monolog;
 use Tibbs\ScopedLogger\ScopedLogManager;
@@ -77,6 +78,14 @@ describe('LogManager delegation', function () {
         Log::shareContext(['request_id' => 'abc']);
 
         Log::stack(['null'])->info('hello');
+
+        expect($this->logged[0]->context)->toMatchArray(['request_id' => 'abc']);
+    });
+
+    it('applies Log::shareContext() to on-demand built channels', function () {
+        Log::shareContext(['request_id' => 'abc']);
+
+        Log::build(['driver' => 'monolog', 'handler' => NullHandler::class])->info('hello');
 
         expect($this->logged[0]->context)->toMatchArray(['request_id' => 'abc']);
     });
