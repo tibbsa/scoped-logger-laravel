@@ -477,6 +477,31 @@ Log::channel('slack')->scope('payment')->debug('Processing payment');
 // ❌ Dropped (slack channel requires error level)
 ```
 
+### On-Demand Channels
+
+Channels created with `Log::stack()` and `Log::build()` are filtered like configured channels and support `scope()`. They are matched against `channel_scopes` and `disabled_channels` by name:
+
+| Method | Channel name |
+|---|---|
+| `Log::stack($channels, 'audit')` | `audit` |
+| `Log::stack($channels)` | `stack` |
+| `Log::build($config)` | `ondemand` |
+
+```php
+'channel_scopes' => [
+    'audit' => ['payment' => 'debug'],
+],
+
+'disabled_channels' => ['ondemand'], // Leave Log::build() channels unfiltered
+```
+
+```php
+Log::stack(['single', 'daily'], 'audit')->scope('payment')->debug('Refund issued');
+// ✅ Logs (audit allows debug for payment)
+```
+
+Each call returns a new logger, so runtime overrides set with `setRuntimeLevel()` on another channel do not apply to it.
+
 ## Multiple Scopes
 
 Log with multiple scopes simultaneously by passing an array to `scope()`. The package uses a "most verbose wins" strategy:

@@ -55,24 +55,40 @@ class ScopedLogManager extends LogManager
     }
 
     /**
-     * Build an on-demand channel using the underlying log manager
+     * Build an on-demand channel, wrapped in ScopedLogger as channel 'ondemand'
      *
      * @param  array<string, mixed>  $config
      */
     public function build(array $config): LoggerInterface
     {
-        return $this->originalLogManager->build($config);
+        return $this->wrapOnDemand($this->originalLogManager->build($config), 'ondemand');
     }
 
     /**
-     * Create an on-demand stack channel using the underlying log manager
+     * Create an on-demand stack, wrapped in ScopedLogger as channel $channel (default 'stack')
      *
      * @param  array<int, string>  $channels
      * @param  string|null  $channel
      */
     public function stack(array $channels, $channel = null): LoggerInterface
     {
-        return $this->originalLogManager->stack($channels, $channel);
+        return $this->wrapOnDemand($this->originalLogManager->stack($channels, $channel), $channel ?? 'stack');
+    }
+
+    /**
+     * Wrap an on-demand logger without caching it, since each call builds a new logger
+     */
+    protected function wrapOnDemand(LoggerInterface $logger, string $channelName): LoggerInterface
+    {
+        /** @var array<string, mixed> $configArray */
+        $configArray = config('scoped-logger', []);
+        $config = Configuration::fromArray($configArray);
+
+        if (! $this->shouldWrapChannel($channelName, $config)) {
+            return $logger;
+        }
+
+        return new ScopedLogger($logger, $config, $channelName);
     }
 
     /**
