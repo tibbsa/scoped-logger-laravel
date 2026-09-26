@@ -259,6 +259,9 @@ You can completely disable scoped logging by setting `SCOPED_LOG_ENABLED=false` 
 - ❌ **No unknown scope checking** - unknown scopes won't throw exceptions or log warnings
 - ✅ **Shared context preserved** - context from `withContext()` is still merged
 - ✅ **Underlying channel level applies** - Laravel's channel log level still filters
+- ✅ **Scoped API stays safe** - `Log::scope('x')->info(...)` and runtime-level calls are accepted and ignored, so code needs no changes
+
+The same applies to individual channels listed in `disabled_channels`: they return a `PassThroughScopedLogger`, which implements the same `ScopedLoggerContract` as the active `ScopedLogger`.
 
 **Use this when:**
 - You want to completely bypass scoped logging
