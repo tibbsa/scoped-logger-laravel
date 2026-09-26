@@ -64,7 +64,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest]
-        php: [8.4, 8.3]
+        php: [8.5, 8.4, 8.3]
         laravel: ['13.*', '12.*']
         stability: [prefer-lowest, prefer-stable]
         include:
@@ -72,6 +72,10 @@ jobs:
             testbench: '11.*'
           - laravel: '12.*'
             testbench: '10.*'
+        exclude:
+          # Lowest testbench/symfony releases emit PHP 8.5 deprecations
+          - php: 8.5
+            stability: prefer-lowest
 
     steps:
       - name: Checkout code
