@@ -98,11 +98,19 @@ class ScopedLogger implements ScopedLoggerContract
     }
 
     /**
-     * Flush the shared context
+     * Flush the shared context, or only the given keys
+     *
+     * @param  string[]|null  $keys
      */
-    public function withoutContext(): static
+    public function withoutContext(?array $keys = null): static
     {
-        $this->sharedContext = [];
+        $this->sharedContext = is_array($keys)
+            ? array_diff_key($this->sharedContext, array_flip($keys))
+            : [];
+
+        if (method_exists($this->logger, 'withoutContext')) {
+            $this->logger->withoutContext($keys);
+        }
 
         return $this;
     }

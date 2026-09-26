@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tibbs\ScopedLogger;
 
+use Closure;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\LogManager;
+use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Configuration\Configuration;
 use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
 
@@ -35,9 +38,7 @@ class ScopedLogManager extends LogManager
         /** @var array<string, mixed> $configArray */
         $configArray = config('scoped-logger', []);
         $config = Configuration::fromArray($configArray);
-        $channelName = $channel ?? $this->getDefaultDriver();
-
-        $channelNameString = is_string($channelName) ? $channelName : 'default';
+        $channelNameString = $this->channelName($channel);
 
         if (isset($this->wrappedChannels[$channelNameString])) {
             return $this->wrappedChannels[$channelNameString];
@@ -58,6 +59,125 @@ class ScopedLogManager extends LogManager
     public function driver($driver = null): ScopedLoggerContract
     {
         return $this->channel($driver);
+    }
+
+    /**
+     * Build an on-demand channel using the underlying log manager
+     *
+     * @param  array<string, mixed>  $config
+     */
+    public function build(array $config): LoggerInterface
+    {
+        return $this->originalLogManager->build($config);
+    }
+
+    /**
+     * Create an on-demand stack channel using the underlying log manager
+     *
+     * @param  array<int, string>  $channels
+     * @param  string|null  $channel
+     */
+    public function stack(array $channels, $channel = null): LoggerInterface
+    {
+        return $this->originalLogManager->stack($channels, $channel);
+    }
+
+    /**
+     * Share context across all channels of the underlying log manager
+     *
+     * @param  array<string, mixed>  $context
+     */
+    public function shareContext(array $context): static
+    {
+        $this->originalLogManager->shareContext($context);
+
+        return $this;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function sharedContext(): array
+    {
+        return $this->originalLogManager->sharedContext();
+    }
+
+    /**
+     * Flush context on all resolved channels, including scoped wrappers
+     *
+     * @param  string[]|null  $keys
+     */
+    public function withoutContext(?array $keys = null): static
+    {
+        $this->originalLogManager->withoutContext($keys);
+
+        foreach ($this->wrappedChannels as $channel) {
+            $channel->withoutContext($keys);
+        }
+
+        return $this;
+    }
+
+    public function flushSharedContext(): static
+    {
+        $this->originalLogManager->flushSharedContext();
+
+        return $this;
+    }
+
+    /**
+     * Register a custom driver creator on the underlying log manager
+     *
+     * @param  string  $driver
+     */
+    public function extend($driver, Closure $callback): static
+    {
+        $this->originalLogManager->extend($driver, $callback);
+
+        return $this;
+    }
+
+    /**
+     * Forget a resolved channel and its scoped wrapper
+     *
+     * @param  string|null  $driver
+     */
+    public function forgetChannel($driver = null): void
+    {
+        $this->originalLogManager->forgetChannel($driver);
+
+        unset($this->wrappedChannels[$this->channelName($driver)]);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getChannels(): array
+    {
+        return $this->originalLogManager->getChannels();
+    }
+
+    /**
+     * Set the application instance on this and the underlying log manager
+     *
+     * @param  Application  $app
+     */
+    public function setApplication($app): static
+    {
+        parent::setApplication($app);
+        $this->originalLogManager->setApplication($app);
+
+        return $this;
+    }
+
+    /**
+     * Resolve the name used to cache a channel's ScopedLogger wrapper
+     */
+    protected function channelName(mixed $channel): string
+    {
+        $channelName = $channel ?? $this->getDefaultDriver();
+
+        return is_string($channelName) ? $channelName : 'default';
     }
 
     /**

@@ -27,7 +27,10 @@ interface ScopedLoggerContract extends LoggerInterface
      */
     public function withContext(array $context = []): static;
 
-    public function withoutContext(): static;
+    /**
+     * @param  string[]|null  $keys
+     */
+    public function withoutContext(?array $keys = null): static;
 
     public function setRuntimeLevel(string $scope, string|false $level): static;
 
