@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tibbs\ScopedLogger;
 
+use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\LogManager;
 use LogicException;
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Configuration\Configuration;
+use UnitEnum;
 
 class ScopedLogManager extends LogManager
 {
@@ -25,9 +27,12 @@ class ScopedLogManager extends LogManager
 
     /**
      * Get a log channel instance, wrapped in ScopedLogger
+     *
+     * @param  UnitEnum|string|null  $channel
      */
     public function channel($channel = null): LoggerInterface
     {
+        $channel = $this->normalizeChannel($channel);
         $logger = $this->originalLogManager->channel($channel);
         /** @var array<string, mixed> $configArray */
         $configArray = config('scoped-logger', []);
@@ -48,6 +53,8 @@ class ScopedLogManager extends LogManager
 
     /**
      * Get a log driver instance (alias for channel)
+     *
+     * @param  UnitEnum|string|null  $driver
      */
     public function driver($driver = null): LoggerInterface
     {
@@ -133,10 +140,11 @@ class ScopedLogManager extends LogManager
     /**
      * Forget a resolved channel and its scoped wrapper
      *
-     * @param  string|null  $driver
+     * @param  UnitEnum|string|null  $driver
      */
     public function forgetChannel($driver = null): void
     {
+        $driver = $this->normalizeChannel($driver);
         $this->originalLogManager->forgetChannel($driver);
 
         unset($this->wrappedChannels[$this->channelName($driver)]);
@@ -161,6 +169,18 @@ class ScopedLogManager extends LogManager
         $this->originalLogManager->setApplication($app);
 
         return $this;
+    }
+
+    /**
+     * Convert an enum channel name to its string form, as Laravel's enum_value() does
+     */
+    protected function normalizeChannel(UnitEnum|string|null $channel): ?string
+    {
+        return match (true) {
+            $channel instanceof BackedEnum => (string) $channel->value,
+            $channel instanceof UnitEnum => $channel->name,
+            default => $channel,
+        };
     }
 
     /**
