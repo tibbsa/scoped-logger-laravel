@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
@@ -48,7 +50,7 @@ describe('PassThroughScopedLogger - unit', function () {
         expect($this->passThrough->getRuntimeLevels())->toBe([]);
     });
 
-    it('withContext() and withoutContext() are no-ops returning itself', function () {
+    it('withContext() and withoutContext() return itself when the logger has no context support', function () {
         expect($this->passThrough->withContext(['x' => 1]))->toBe($this->passThrough);
         expect($this->passThrough->withoutContext())->toBe($this->passThrough);
     });
@@ -176,5 +178,46 @@ describe('PassThroughScopedLogger - integration via Log facade', function () {
 
         expect($channel)->toBeInstanceOf(ScopedLogger::class);
         expect($channel)->not->toBeInstanceOf(PassThroughScopedLogger::class);
+    });
+});
+
+describe('PassThroughScopedLogger - context when disabled', function () {
+    beforeEach(function () {
+        config([
+            'scoped-logger.enabled' => false,
+            'logging.default' => 'null',
+        ]);
+
+        $this->logged = [];
+        Event::listen(MessageLogged::class, function (MessageLogged $event) {
+            $this->logged[] = $event;
+        });
+    });
+
+    it('keeps Log::withContext() context', function () {
+        Log::withContext(['user_id' => 1]);
+
+        Log::info('hello');
+
+        expect($this->logged[0]->context)->toMatchArray(['user_id' => 1]);
+    });
+
+    it('clears context with Log::channel()->withoutContext()', function () {
+        Log::withContext(['user_id' => 1]);
+        Log::channel()->withoutContext();
+
+        Log::info('hello');
+
+        expect($this->logged[0]->context)->not->toHaveKey('user_id');
+    });
+
+    it('clears only the given keys with withoutContext($keys)', function () {
+        Log::withContext(['user_id' => 1, 'tenant' => 'acme']);
+        Log::channel()->withoutContext(['user_id']);
+
+        Log::info('hello');
+
+        expect($this->logged[0]->context)->not->toHaveKey('user_id')
+            ->and($this->logged[0]->context)->toMatchArray(['tenant' => 'acme']);
     });
 });

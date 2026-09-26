@@ -32,15 +32,30 @@ class PassThroughScopedLogger implements ScopedLoggerContract
     }
 
     /**
+     * Add context on the underlying logger, when it supports context
+     *
      * @param  array<string, mixed>  $context
      */
     public function withContext(array $context = []): static
     {
+        if (method_exists($this->logger, 'withContext')) {
+            $this->logger->withContext($context);
+        }
+
         return $this;
     }
 
-    public function withoutContext(): static
+    /**
+     * Flush context on the underlying logger, when it supports context
+     *
+     * @param  string[]|null  $keys
+     */
+    public function withoutContext(?array $keys = null): static
     {
+        if (method_exists($this->logger, 'withoutContext')) {
+            $this->logger->withoutContext($keys);
+        }
+
         return $this;
     }
 
