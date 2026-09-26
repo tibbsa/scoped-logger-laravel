@@ -62,23 +62,23 @@ composer format
 
 ### Core Flow: How Scoped Logging Works
 
-1. **Service Provider Extension** (`ScopedLoggerServiceProvider:32-34`):
-   - Extends Laravel's `LogManager` with `ScopedLogManager`
-   - Wraps all log channels unless explicitly disabled
+1. **Service Provider Extension** (`ScopedLoggerServiceProvider::packageRegistered()`):
+   - Decorates Laravel's `log` binding with `ScopedLogManager`, which holds the original `LogManager` as `$originalLogManager`
 
-2. **Channel Wrapping** (`ScopedLogManager:23-40`):
-   - When `Log::channel()` is called, returns `ScopedLogger` instance
-   - Checks if channel is enabled for scoped logging (respects `disabled_channels` config)
-   - Passes through to original Laravel logger if disabled
+2. **Channel Wrapping** (`ScopedLogManager::channel()`):
+   - Resolves the real channel from `$originalLogManager`, then returns a cached wrapper per channel name
+   - Always returns a `ScopedLoggerContract`: an active `ScopedLogger`, or a `PassThroughScopedLogger` when scoped logging is disabled globally or the channel is in `disabled_channels`
+   - Enum channel names (`UnitEnum`) are normalized to strings first (`normalizeChannel()`), so they match their string form everywhere
+   - `stack()` and `build()` are wrapped the same way but never cached (each call builds a new logger); they are named after the stack's `$channel` argument (default `stack`) and `ondemand`
 
-3. **Scope Resolution Chain** (`ScopedLogger:246-315`):
+3. **Scope Resolution Chain** (`ScopedLogger::log()` → `getConfiguredLevel()`):
    - **Explicit scopes**: Set via `Log::scope('payment')` (highest priority)
    - **Runtime overrides**: Temporary level changes via `setRuntimeLevel()`
    - **Pattern matching**: Wildcards like `App\Services\*` (via `PatternMatcher`)
    - **Auto-detection**: Walks stack trace to find calling class (via `ScopeResolver`)
    - **Default level**: Falls back to `default_level` config
 
-4. **Log Filtering** (`ScopedLogger:422-443`):
+4. **Log Filtering** (`ScopedLogger::shouldLog()`):
    - Compares log level against configured scope level
    - Uses PSR-3 severity hierarchy (debug=0 → emergency=7)
    - Silently drops logs below threshold
@@ -87,16 +87,27 @@ composer format
 ### Key Components
 
 **ScopedLogManager** (`src/ScopedLogManager.php`)
-- Decorates Laravel's `LogManager`
-- Intercepts `channel()` and `driver()` calls
-- Returns wrapped `ScopedLogger` instances
+- Extends Laravel's `LogManager` but acts as a decorator: its own `$channels`/`$sharedContext` state is never populated
+- Wraps `channel()`, `driver()`, `stack()` and `build()` results (see Core Flow above)
+- Delegates every other stateful manager method to `$originalLogManager`: `extend()`, `shareContext()`, `sharedContext()`, `withoutContext()`, `flushSharedContext()`, `forgetChannel()`, `getChannels()`, `setApplication()`
+- `withoutContext()` also flushes every cached wrapper; `forgetChannel()` also drops the cached wrapper
+- Forwards `scope()`, `setRuntimeLevel()` etc. to the default channel so `Log::scope(...)` works
+
+**ScopedLoggerContract** (`src/Contracts/ScopedLoggerContract.php`)
+- PSR-3 `LoggerInterface` plus the fluent scoped API (`scope()`, `withContext()`, `withoutContext(?array $keys)`, runtime-level methods)
+- Return type of the manager's channel-returning methods; implemented by both loggers below
 
 **ScopedLogger** (`src/ScopedLogger.php`)
-- Implements `LoggerInterface` (PSR-3)
+- Active implementation of `ScopedLoggerContract`
 - Main filtering logic in `log()` method
-- Manages runtime level overrides
+- Manages runtime level overrides (per wrapper instance, so per channel)
 - Handles multiple scopes with "most verbose wins" strategy
 - Adds metadata and debug context when configured
+
+**PassThroughScopedLogger** (`src/PassThroughScopedLogger.php`)
+- Used when scoped logging is disabled, globally or per channel
+- PSR-3 calls and `withContext()`/`withoutContext()` go straight to Laravel's logger; `scope()` and runtime-level methods are no-ops returning `$this`
+- Other calls are forwarded via `__call()`
 
 **ScopeResolver** (`src/Support/ScopeResolver.php`)
 - Auto-detects scope from calling class via stack trace analysis
@@ -179,7 +190,9 @@ The package uses a cascading configuration approach:
 - **Framework**: Pest with Orchestra Testbench
 - **Base class**: `Tibbs\ScopedLogger\Tests\TestCase`
 - **Test fixtures**: Located in `tests/Fixtures/` for testing auto-detection
-- **Coverage target**: 80% minimum (enforced in CI for PHP 8.4)
+- **Coverage target**: 80% minimum (enforced in CI for PHP 8.4), plus Codecov's `codecov/patch` check, which expects changed lines to be covered at roughly the project's current coverage (~98%)
+- **CI matrix**: PHP 8.3/8.4/8.5 × Laravel 12/13 × prefer-lowest/prefer-stable (8.5 + prefer-lowest excluded). CI runs on push only when PHP/config files change, so Markdown-only PRs get no checks
+- **Lowest versions**: Composer's security-advisory blocking means `prefer-lowest` resolves Laravel 12.61+/13.12+, not the declared 12.11.0/13.0 floors
 
 ### Test Organization
 
@@ -187,6 +200,7 @@ The package uses a cascading configuration approach:
 - **Unit tests**: Test individual components (ScopeResolver, PatternMatcher, etc.)
 - **Feature tests**: Test specific features (runtime modification, multiple scopes, etc.)
 - **Command tests**: Test Artisan commands in `tests/Commands/`
+- **Manager behaviour**: `LogManagerDelegationTest`, `EnumChannelTest`, `OnDemandChannelTest`, `PassThroughScopedLoggerTest`. To assert what was actually logged (message, merged context), listen for `Illuminate\Log\Events\MessageLogged` rather than inspecting wrapper internals
 
 ## Static Analysis Notes
 
@@ -203,3 +217,7 @@ The package uses a cascading configuration approach:
 2. **Windows paths**: When writing code that manipulates file paths, remember this is a Windows environment (use `DIRECTORY_SEPARATOR` or normalize paths).
 
 3. **Test isolation**: Each test should clear runtime overrides and explicit scopes to prevent bleed-through.
+
+4. **New `LogManager` methods**: A guard test in `LogManagerDelegationTest` fails when Laravel's `LogManager` gains a public method that `ScopedLogManager` neither overrides nor lists as safe to inherit. Inherited stateful methods silently act on the decorator's empty state, so delegate them to `$originalLogManager` (and to cached wrappers if they hold state) rather than adding them to the allowlist.
+
+5. **`php.bat` goes through cmd.exe**: Arguments containing `>` (e.g. `->` in `php -r '...'` code) are treated as redirects, silently breaking the command and creating stray files in the working directory. Put PHP snippets in a script file and run that instead.
