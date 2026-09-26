@@ -62,6 +62,16 @@ class ScopedLogManager extends LogManager
     }
 
     /**
+     * Set the default log driver name
+     *
+     * @param  UnitEnum|string  $name
+     */
+    public function setDefaultDriver($name): void
+    {
+        parent::setDefaultDriver($this->normalizeChannel($name));
+    }
+
+    /**
      * Build an on-demand channel using the underlying log manager
      *
      * @param  array<string, mixed>  $config
@@ -173,6 +183,8 @@ class ScopedLogManager extends LogManager
 
     /**
      * Convert an enum channel name to its string form, as Laravel's enum_value() does
+     *
+     * @return ($channel is null ? null : string)
      */
     protected function normalizeChannel(UnitEnum|string|null $channel): ?string
     {

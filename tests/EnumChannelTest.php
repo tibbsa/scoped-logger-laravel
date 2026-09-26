@@ -56,6 +56,12 @@ describe('Enum channel names', function () {
         expect(Log::driver(BackedLogChannel::Payments))->toBe(Log::channel('payments'));
     });
 
+    it('uses an enum passed to Log::setDefaultDriver() as the default channel', function () {
+        Log::setDefaultDriver(BackedLogChannel::Payments);
+
+        expect(Log::channel())->toBe(Log::channel('payments'));
+    });
+
     it('does not wrap an enum channel listed in disabled_channels', function () {
         config(['scoped-logger.disabled_channels' => ['payments']]);
 
