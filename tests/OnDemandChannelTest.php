@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\TestHandler;
 use Monolog\Logger as Monolog;
-use Tibbs\ScopedLogger\ScopedLogger;
+use Tibbs\ScopedLogger\PassThroughScopedLogger;
 
 /**
  * On-demand channels from Log::stack() and Log::build() are filtered like
@@ -72,17 +72,26 @@ describe('On-demand channels', function () {
         expect($this->logged)->toBe(['kept']);
     });
 
-    it('does not wrap a stack whose name is in disabled_channels', function () {
+    it('passes through a stack whose name is in disabled_channels', function () {
         config(['scoped-logger.disabled_channels' => ['audit']]);
 
-        expect(Log::stack(['null'], 'audit'))->not->toBeInstanceOf(ScopedLogger::class);
+        expect(Log::stack(['null'], 'audit'))->toBeInstanceOf(PassThroughScopedLogger::class);
     });
 
-    it('does not wrap built channels when "ondemand" is in disabled_channels', function () {
+    it('passes through built channels when "ondemand" is in disabled_channels', function () {
         config(['scoped-logger.disabled_channels' => ['ondemand']]);
 
         expect(Log::build(['driver' => 'monolog', 'handler' => NullHandler::class]))
-            ->not->toBeInstanceOf(ScopedLogger::class);
+            ->toBeInstanceOf(PassThroughScopedLogger::class);
+    });
+
+    it('keeps scope() usable on on-demand channels when scoped logging is disabled', function () {
+        config(['scoped-logger.enabled' => false]);
+
+        Log::stack(['null'])->scope('payment')->info('from stack');
+        Log::build(['driver' => 'monolog', 'handler' => NullHandler::class])->scope('payment')->info('from build');
+
+        expect($this->logged)->toBe(['from stack', 'from build']);
     });
 
     it('sends each stack to its own channels', function () {

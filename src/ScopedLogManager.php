@@ -66,7 +66,7 @@ class ScopedLogManager extends LogManager
      *
      * @param  array<string, mixed>  $config
      */
-    public function build(array $config): LoggerInterface
+    public function build(array $config): ScopedLoggerContract
     {
         return $this->wrapOnDemand($this->originalLogManager->build($config), 'ondemand');
     }
@@ -77,7 +77,7 @@ class ScopedLogManager extends LogManager
      * @param  array<int, string>  $channels
      * @param  string|null  $channel
      */
-    public function stack(array $channels, $channel = null): LoggerInterface
+    public function stack(array $channels, $channel = null): ScopedLoggerContract
     {
         return $this->wrapOnDemand($this->originalLogManager->stack($channels, $channel), $channel ?? 'stack');
     }
@@ -85,17 +85,15 @@ class ScopedLogManager extends LogManager
     /**
      * Wrap an on-demand logger without caching it, since each call builds a new logger
      */
-    protected function wrapOnDemand(LoggerInterface $logger, string $channelName): LoggerInterface
+    protected function wrapOnDemand(LoggerInterface $logger, string $channelName): ScopedLoggerContract
     {
         /** @var array<string, mixed> $configArray */
         $configArray = config('scoped-logger', []);
         $config = Configuration::fromArray($configArray);
 
-        if (! $this->shouldWrapChannel($channelName, $config)) {
-            return $logger;
-        }
-
-        return new ScopedLogger($logger, $config, $channelName);
+        return $this->shouldWrapChannel($channelName, $config)
+            ? new ScopedLogger($logger, $config, $channelName)
+            : new PassThroughScopedLogger($logger);
     }
 
     /**
