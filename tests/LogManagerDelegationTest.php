@@ -209,7 +209,7 @@ describe('LogManager delegation', function () {
         // Methods that are safe to inherit: they route through channel()/driver()
         // (overridden) or only touch config via $this->app (kept in sync by setApplication()).
         $safeToInherit = [
-            'getDefaultDriver', 'setDefaultDriver',
+            'getDefaultDriver',
             'emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug', 'log',
         ];
 

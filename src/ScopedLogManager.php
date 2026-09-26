@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tibbs\ScopedLogger;
 
+use BackedEnum;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Log\LogManager;
 use Psr\Log\LoggerInterface;
 use Tibbs\ScopedLogger\Configuration\Configuration;
 use Tibbs\ScopedLogger\Contracts\ScopedLoggerContract;
+use UnitEnum;
 
 class ScopedLogManager extends LogManager
 {
@@ -31,9 +33,12 @@ class ScopedLogManager extends LogManager
      * or a {@see PassThroughScopedLogger} (when disabled globally or
      * for this specific channel). This keeps `Log::scope(...)` and other
      * fluent calls safe even when the package is turned off.
+     *
+     * @param  UnitEnum|string|null  $channel
      */
     public function channel($channel = null): ScopedLoggerContract
     {
+        $channel = $this->normalizeChannel($channel);
         $logger = $this->originalLogManager->channel($channel);
         /** @var array<string, mixed> $configArray */
         $configArray = config('scoped-logger', []);
@@ -55,10 +60,22 @@ class ScopedLogManager extends LogManager
 
     /**
      * Get a log driver instance (alias for channel).
+     *
+     * @param  UnitEnum|string|null  $driver
      */
     public function driver($driver = null): ScopedLoggerContract
     {
         return $this->channel($driver);
+    }
+
+    /**
+     * Set the default log driver name
+     *
+     * @param  UnitEnum|string  $name
+     */
+    public function setDefaultDriver($name): void
+    {
+        parent::setDefaultDriver($this->normalizeChannel($name));
     }
 
     /**
@@ -154,10 +171,11 @@ class ScopedLogManager extends LogManager
     /**
      * Forget a resolved channel and its scoped wrapper
      *
-     * @param  string|null  $driver
+     * @param  UnitEnum|string|null  $driver
      */
     public function forgetChannel($driver = null): void
     {
+        $driver = $this->normalizeChannel($driver);
         $this->originalLogManager->forgetChannel($driver);
 
         unset($this->wrappedChannels[$this->channelName($driver)]);
@@ -182,6 +200,20 @@ class ScopedLogManager extends LogManager
         $this->originalLogManager->setApplication($app);
 
         return $this;
+    }
+
+    /**
+     * Convert an enum channel name to its string form, as Laravel's enum_value() does
+     *
+     * @return ($channel is null ? null : string)
+     */
+    protected function normalizeChannel(UnitEnum|string|null $channel): ?string
+    {
+        return match (true) {
+            $channel instanceof BackedEnum => (string) $channel->value,
+            $channel instanceof UnitEnum => $channel->name,
+            default => $channel,
+        };
     }
 
     /**
